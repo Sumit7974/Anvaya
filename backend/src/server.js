@@ -19,6 +19,7 @@ app.get('/api/health', (req, res) => {
 
 // Routes get mounted here from Day 2 onward:
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
