@@ -1,28 +1,20 @@
-const { protect, authorize } = require('../middleware/authMiddleware');
 const express = require('express');
-const { register, login } = require('../controllers/authController');
+const rateLimit = require('express-rate-limit');
+const { registerUser, loginUser } = require('../controllers/authController');
 
 const router = express.Router();
 
-router.get('/test', (req, res) => {
-  res.status(200).json({
-    message: 'Auth route is working'
-  });
-});
-router.get('/protected-test', protect, (req, res) => {
-  res.status(200).json({
-    message: 'Protected route is working',
-    user: req.user
-  });
-});
-router.get('/customer-test', protect, authorize('customer'), (req, res) => {
-  res.status(200).json({
-    message: 'Customer access granted',
-    user: req.user
-  });
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,                   // 10 attempts per IP per window
+  message: { message: 'Too many login attempts, please try again after 15 minutes' }
 });
 
-router.post('/register', register);
-router.post('/login', login);
+const roles = ['customer', 'worker', 'admin', 'contractor'];
+
+roles.forEach((role) => {
+  router.post(`/${role}/register`, registerUser(role));
+  router.post(`/${role}/login`, loginLimiter, loginUser(role));
+});
 
 module.exports = router;
