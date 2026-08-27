@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -13,12 +14,15 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Anvaya API is running' });
 });
 
 // Routes get mounted here from Day 2 onward:
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/workers', require('./routes/workerRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 
 app.use((req, res) => {
