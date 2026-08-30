@@ -1,89 +1,431 @@
-import WorkerProfile from "./WorkerProfile";
-// function App() {
-//   return (
-//     <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-center px-6">
-      
-//       <h1 className="text-5xl font-bold text-blue-700">
-//         Anvaya
-//       </h1>
+import { useState } from "react";
 
-//       <h2 className="mt-4 text-2xl font-semibold text-slate-800">
-//         Connect. Collaborate. Grow.
-//       </h2>
+import RoleSelect from "./RoleSelect";
+import Login from "./Login";
+import CustomerBooking from "./CustomerBooking";
+import WorkerDashboard from "./WorkerDashboard"; // Case fixed
+import TranslationVoice from "./TranslationVoice";
 
-//       <p className="mt-4 max-w-xl text-lg text-slate-600">
-//         A platform designed to connect people, ideas and opportunities.
-//       </p>
+import ContractorDashboard from "./ContractorDashboard";
+import CreateProject from "./CreateProject";
+import WorkerSelection from "./WorkerSelection";
+import ProjectDetails from "./ProjectDetails";
 
-//       <button className="btn-primary mt-8">
-//         Get Started
-//       </button>
+import CustomerPayment from "./CustomerPayment";
+import RatingSubmission from "./RatingSubmission";
+import ComplaintSubmission from "./ComplaintSubmission";
+import ComplaintSuccess from "./ComplaintSuccess";
 
-//     </main>
-//   );
-// }
+import AdminDashboard from "./AdminDashboard";
+import WorkerProcess from "./WorkerProcess";
+import ProjectAssigned from "./projectAssigned";
+import WorkProcessStarted from "./WorkProcessStarted";
+import PaymentSuccess from "./PaymentSuccess";
 
-// export default App;
+ 
+
 function App() {
-  return (
-    <main className="min-h-screen bg-[#FFF1E6] text-slate-900">
-      
-      {/* Navigation */}
-      <nav className="flex items-center justify-between px-8 py-5">
-        <h1 className="text-2xl font-bold tracking-tight text-amber-700">
-          Anvaya
-        </h1>
+  const [page, setPage] = useState("home");
+  const [selectedRole, setSelectedRole] = useState("");
 
-        <button className="rounded-lg border border-slate-300 px-5 py-2 text-sm font-medium text-slate-700 hover:bg-white">
-          I'm a Worker
-        </button>
-      </nav>
+  /* CUSTOMER DATA */
+  const [selectedWorker, setSelectedWorker] = useState(null);
 
-      {/* Hero Section */}
-      <section className="flex min-h-[calc(100vh-80px)] flex-col items-center justify-center px-6 text-center">
-        <img
-  src="/anvaya-logo.png"
-  alt="Anvaya"
- className="h-50 w-auto object-contain"
+  /* CONTRACTOR DATA */
+  const [project, setProject] = useState(null);
+  const [selectedWorkers, setSelectedWorkers] = useState([]);
+
+  /* ================= ROLE SELECT ================= */
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setPage("login");
+  };
+
+  /* ================= LOGIN ================= */
+  const handleLoginSuccess = () => {
+    if (selectedRole === "customer") {
+      setPage("customerBooking");
+    } else if (selectedRole === "worker") {
+      setPage("workerDashboard");
+    } else if (selectedRole === "contractor") {
+      setPage("contractorDashboard");
+    } else if (selectedRole === "admin") {
+      setPage("adminDashboard");
+    }
+  };
+
+  /* ================= CUSTOMER WORKER SELECT ================= */
+  const handleWorkerSelect = (worker) => {
+    setSelectedWorker(worker);
+    setPage("workerProcess");
+  };
+
+  /* ================= BACK BUTTON ================= */
+  const handleBack = () => {
+    switch (page) {      /* GENERAL */
+      case "translationVoice":
+        setPage("home");
+        break;
+
+      case "role":
+        setPage("translationVoice");
+        break;
+
+      case "login":
+        setPage("role");
+        break;
+
+      /* CUSTOMER */
+      case "customerBooking":
+        setPage("login");
+        break;
+
+      case "workerProcess":
+        setPage("customerBooking");
+        break;
+
+      case "customerPayment":
+        setPage("workerProcess");
+        break;
+
+      case "paymentSuccess":
+        setPage("customerPayment");
+        break;
+
+      case "ratingSubmission":
+        setPage("paymentSuccess");
+        break;
+
+      case "complaintSubmission":
+        setPage("ratingSubmission");
+        break;
+
+      case "complaintSuccess":
+        setPage("ratingSubmission");
+        break;
+
+      /* WORKER */
+      case "workerDashboard":
+        setPage("login");
+        break;
+
+      /* CONTRACTOR FLOW BACK HANDLERS */
+      case "contractorDashboard":
+  setPage("login");
+  break;
+
+case "createProject":
+  setPage("contractorDashboard");
+  break;
+
+case "workerSelection":
+  setPage("createProject");
+  break;
+
+case "projectDetails":
+  setPage("workerSelection");
+  break;
+
+  case "projectAssigned":
+  setPage("projectDetails");
+  break;
+
   
-/>
-        
-        <span className="mb-4 rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">
-          Trusted Local Workers
-        </span>
 
-        <h2 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-          Find Trusted Workers Near You
-        </h2>
+  case "WorkProcessStarted":
+  setPage("contractorDashboard");
+  break;
+     
 
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-          Connect with verified electricians, plumbers, carpenters,
-          painters, masons and other skilled workers in your area.
-        </p>
+      /* ADMIN */
+      case "adminDashboard":
+        setPage("login");
+        break;
 
-        {/* Actions */}
-        <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-          <button className="rounded-lg bg-amber-600 px-7 py-3 font-semibold text-white hover:bg-amber-700">
-            Find a Worker
-          </button>
+      default:
+        setPage("home");
+        break;
+    }
+  };
 
-          <button className="rounded-lg border border-slate-300 bg-white px-7 py-3 font-semibold text-slate-700 hover:bg-slate-50">
-            Become a Worker
-          </button>
-        </div>
+  /* ================= VIEWS ================= */
 
-        {/* Key Benefits */}
-        <div className="mt-14 flex flex-wrap justify-center gap-8 text-sm text-slate-600">
-          <span>✓ Verified Workers</span>
-          <span>✓ Nearby Matching</span>
-          <span>✓ Ratings & Reviews</span>
-          <span>✓ Flexible Work</span>
-        </div>
+  if (page === "translationVoice") {
+    return (
+      <TranslationVoice
+        onBack={() => setPage("home")}
+        onContinue={() => setPage("role")}
+      />
+    );
+  }
 
-      </section>
-    </main>
+  if (page === "role") {
+    return (
+      <RoleSelect
+        onSelect={handleRoleSelect}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  if (page === "login") {
+    return (
+      <Login
+        role={selectedRole}
+        onSuccess={handleLoginSuccess}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  /* ================= CUSTOMER FLOW ================= */
+
+  if (page === "customerBooking") {
+    return (
+      <CustomerBooking
+        onBack={handleBack}
+        onSelectWorker={handleWorkerSelect}
+      />
+    );
+  }
+
+  if (page === "workerProcess") {
+    return (
+      <WorkerProcess
+        worker={selectedWorker}
+        onBack={handleBack}
+        onProceedToPayment={() => setPage("customerPayment")}
+      />
+    );
+  }
+
+  if (page === "customerPayment") {
+    return (
+      <CustomerPayment
+        worker={selectedWorker}
+        onBack={handleBack}
+        onNext={() => setPage("paymentSuccess")}
+      />
+    );
+  }
+
+  if (page === "paymentSuccess") {
+  return (
+    <PaymentSuccess
+      onBack={handleBack}
+      onContinue={() => setPage("ratingSubmission")}
+    />
+  );
+}
+     
+               
+             
+
+  if (page === "ratingSubmission") {
+    return (
+      <RatingSubmission
+        onBack={handleBack}
+        onNext={() => setPage("home")}
+        onComplaint={() => setPage("complaintSubmission")}
+      />
+    );
+  }
+
+  if (page === "complaintSubmission") {
+    return (
+      <ComplaintSubmission
+        onBack={handleBack}
+        onSubmit={() => setPage("complaintSuccess")}
+      />
+    );
+  }
+
+  if (page === "complaintSuccess") {
+    return (
+      <ComplaintSuccess
+        onBack={handleBack}
+        onHome={() => setPage("home")}
+      />
+    );
+  }
+
+  /* ================= WORKER FLOW ================= */
+
+  if (page === "workerDashboard") {
+    return <WorkerDashboard onBack={handleBack} />;
+  }
+
+  /* ================= CONTRACTOR FLOW ================= */
+
+  /* ================= CONTRACTOR FLOW ================= */
+
+/* ================= CONTRACTOR FLOW ================= */
+
+if (page === "contractorDashboard") {
+  return (
+    <ContractorDashboard
+      onBack={handleBack}
+      onCreateProject={() => {
+        setProject(null);
+        setSelectedWorkers([]);
+        setPage("createProject");
+      }}
+    />
   );
 }
 
-export default App;
+if (page === "createProject") {
+  return (
+    <CreateProject
+      onBack={handleBack}
+      onNext={(newProject) => {
+        setProject(newProject);
+        setSelectedWorkers([]);
+        setPage("workerSelection");
+      }}
+    />
+  );
+}
 
+if (page === "workerSelection") {
+  return (
+    <WorkerSelection
+      project={project}
+      onBack={handleBack}
+      onNext={(workers) => {
+        setSelectedWorkers(workers);
+        setPage("projectDetails");
+      }}
+    />
+  );
+}
+
+if (page === "projectDetails") {
+  return (
+    <ProjectDetails
+      project={project}
+      selectedWorkers={selectedWorkers}
+      onBack={handleBack}
+      onCreateProject={() => {
+        setPage("projectAssigned");
+      }}
+    />
+  );
+}
+
+if (page === "projectAssigned") {
+  return (
+    <ProjectAssigned
+      project={project}
+      selectedWorkers={selectedWorkers}
+      onBack={handleBack}
+      onContinue={() => {
+        setPage("WorkProcessStarted");
+      }}
+    />
+  );
+}
+/* ================= WORK PROCESS STARTED ================= */
+
+if (page === "WorkProcessStarted") {
+  return (
+    <WorkProcessStarted
+      onDashboard={() => setPage("contractorDashboard")}
+    />
+  );
+}
+   
+        
+  
+        
+   
+       
+
+  /* ================= ADMIN ================= */
+
+  if (page === "adminDashboard") {
+    return <AdminDashboard onBack={handleBack} />;
+  }
+
+  /* ================= HOME ================= */
+
+  return (
+    <main className="min-h-screen bg-[#FFF1E6] text-slate-900">
+      <nav className="flex items-center justify-between px-6 py-5 sm:px-8">
+        <div className="flex items-center gap-3">
+          <img
+            src="/anvaya-logo.png"
+            alt="Anvaya"
+            className="h-12 w-auto object-contain"
+          />
+          <span className="hidden border-l border-amber-200 pl-3 text-sm font-semibold text-slate-600 sm:block">
+            Local services, made easier
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setPage("translationVoice")}
+          className="rounded-xl border border-amber-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-700 hover:shadow-md active:scale-95"
+        >
+          Get Started
+        </button>
+      </nav>
+
+      <section className="flex min-h-[calc(100vh-88px)] flex-col items-center justify-center px-6 pb-16 text-center">
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-amber-800 shadow-sm">
+          <span>✨</span>
+          Trusted Local Workers
+        </div>
+
+        <img
+          src="/anvaya-logo.png"
+          alt="Anvaya"
+          className="h-40 w-auto object-contain sm:h-48"
+        />
+
+        <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-6xl">
+          Find Trusted Workers
+          <span className="text-amber-600"> Near You</span>
+        </h1>
+
+        <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
+          Connect with verified electricians, plumbers, carpenters, painters,
+          masons and other skilled professionals for your everyday needs.
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setPage("translationVoice")}
+          className="group mt-9 flex items-center justify-center gap-3 rounded-2xl bg-amber-600 px-8 py-4 font-bold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-2xl active:translate-y-0"
+        >
+          <span>Get Started</span>
+          <span className="text-xl transition-transform duration-300 group-hover:translate-x-2">
+            →
+          </span>
+        </button>
+
+        <div className="mt-14 flex max-w-4xl flex-wrap justify-center gap-3">
+          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+            ✓ Verified Workers
+          </div>
+          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+            ✓ Nearby Matching
+          </div>
+          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+            ✓ Ratings & Reviews
+          </div>
+          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+            ✓ Flexible Work
+          </div>
+        </div>
+
+        <p className="mt-12 text-sm text-slate-400">
+          Trusted workers. Better connections. Stronger communities.
+        </p>
+      </section>
+    </main>
+  );
+
+}
+export default App;

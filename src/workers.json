@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "name": "Ramesh Kumar",
+    "phone": "9876543210",
+    "location": "Gwalior",
+    "skills": "Plumbing",
+    "experience": 8,
+    "isAvailable": true
+  }
+]
