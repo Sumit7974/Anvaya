@@ -106,7 +106,8 @@ const getAllWorkers = async (req, res) => {
     const { skill, isAvailable } = req.query;
 
     const filter = {
-      isActive: true
+      isActive: true,
+      'verification.status': 'verified',
     };
 
     if (skill) {
@@ -173,6 +174,7 @@ const getNearbyWorkers = async (req, res) => {
     const filter = {
       isActive: true,
       isAvailable: true,
+      'verification.status': 'verified',
       location: {
         $near: {
           $geometry: {
@@ -205,7 +207,6 @@ const getNearbyWorkers = async (req, res) => {
     });
   }
 };
-
 
 // Upload worker verification document
 const uploadVerificationDoc = async (req, res) => {
