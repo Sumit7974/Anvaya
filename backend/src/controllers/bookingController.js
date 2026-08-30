@@ -203,6 +203,54 @@ const getMyBookings = async (req, res) => {
     });
   }
 };
+const rateBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { score, review } = req.body;
+
+    if (!score || score < 1 || score > 5) {
+      return res.status(400).json({
+        message: 'Rating score must be between 1 and 5'
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      customer: req.user.id,
+      status: 'completed'
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        message: 'Completed booking not found'
+      });
+    }
+
+    if (booking.rating && booking.rating.score) {
+      return res.status(400).json({
+        message: 'Booking has already been rated'
+      });
+    }
+
+    booking.rating = {
+      score: Number(score),
+      review: review || ''
+    };
+
+    await booking.save();
+
+    res.status(200).json({
+      message: 'Rating submitted successfully',
+      rating: booking.rating
+    });
+  } catch (error) {
+    console.error('Rate booking error:', error);
+
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+};
 
 module.exports = {
   createBooking,
@@ -211,5 +259,6 @@ module.exports = {
   startBooking,
   completeBooking,
   cancelBooking,
-  getMyBookings
+  getMyBookings,
+  rateBooking
 };
