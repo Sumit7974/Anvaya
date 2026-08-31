@@ -1,16 +1,16 @@
-# React + Vite
+# Anvaya
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Anvaya frontend and backend project.
 
-Currently, two official plugins are available:
+## Frontend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This project uses React + Vite.
 
-## React Compiler
+## Design
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Anvaya wireframe:
+https://www.figma.com/make/coLOoY8OGzJ3Gx3KR6alxl/Sleep-Monitoring-App?t=RwxcMhII5FC9a7jO-1
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The frontend is built with React and Vite.
