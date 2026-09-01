@@ -7,36 +7,43 @@ const bookingSchema = new mongoose.Schema(
       ref: 'Customer',
       required: true
     },
-
     worker: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Worker'
     },
-
     problemDescription: {
       type: String,
-      required: true
+      required: true,
+      trim: true,
+      maxlength: 2000
     },
-
     serviceTag: {
-      type: String
+      type: String,
+      trim: true,
+      lowercase: true
     },
-
+    quote: {
+      amount: { type: Number, min: 1 },
+      note: { type: String, trim: true, maxlength: 500 },
+      proposedAt: { type: Date },
+      customerRespondedAt: { type: Date }
+    },
     status: {
       type: String,
       enum: [
         'requested',
+        'quote-pending',
         'accepted',
         'in-progress',
         'completion-pending',
         'completed',
         'disputed',
         'rejected',
+        'customer-rejected',
         'cancelled'
       ],
       default: 'requested'
     },
-
     location: {
       type: {
         type: String,
@@ -48,11 +55,10 @@ const bookingSchema = new mongoose.Schema(
         default: [0, 0]
       }
     },
-
     price: {
-      type: Number
+      type: Number,
+      min: 1
     },
-
     rating: {
       score: {
         type: Number,
@@ -60,69 +66,37 @@ const bookingSchema = new mongoose.Schema(
         max: 5
       },
       review: {
-        type: String
+        type: String,
+        maxlength: 300,
+        trim: true
       }
     },
-
     payment: {
-      orderId: {
-        type: String
-      },
-      paymentId: {
-        type: String
-      },
-      signature: {
-        type: String
-      },
+      orderId: String,
+      paymentId: String,
+      signature: String,
       status: {
         type: String,
         enum: ['pending', 'paid', 'failed'],
         default: 'pending'
       }
     },
-
-    acceptedAt: {
-      type: Date
-    },
-
-    startedAt: {
-      type: Date
-    },
-
-    completionRequestedAt: {
-      type: Date
-    },
-
-    customerConfirmedAt: {
-      type: Date
-    },
-
-    disputedAt: {
-      type: Date
-    },
-
-    rejectedAt: {
-      type: Date
-    },
-
+    acceptedAt: Date,
+    startedAt: Date,
+    completionRequestedAt: Date,
+    customerConfirmedAt: Date,
+    disputedAt: Date,
+    rejectedAt: Date,
     rejectionReason: {
-      type: String
+      type: String,
+      maxlength: 300,
+      trim: true
     },
-
-    completedAt: {
-      type: Date
-    }
+    completedAt: Date
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-bookingSchema.index({
-  location: '2dsphere'
-});
+bookingSchema.index({ location: '2dsphere' });
 
-module.exports = mongoose.model(
-  'Booking',
-  bookingSchema
-);
+module.exports = mongoose.model('Booking', bookingSchema);
