@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const Customer = require('../models/Customer');
 const Worker = require('../models/Worker');
+const Admin = require('../models/Admin');
 const Contractor = require('../models/Contractor');
 
 const DEMO_PASSWORD = 'Demo@12345';
@@ -12,7 +13,7 @@ async function upsertDemo(Model, query, data) {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
   return Model.findOneAndUpdate(
     query,
-    { $set: { ...data, passwordHash, isActive: true } },
+    { $set: { ...data, passwordHash, ...(Model === Worker || Model === Customer || Model === Contractor ? { isActive: true } : {}) } },
     { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
   );
 }
@@ -92,6 +93,10 @@ async function main() {
     name: 'Anvaya Demo Customer', email: 'demo.customer@anvaya.test', phone: '9000010001', address: 'Demo Town', location: demoLocation
   });
 
+  await upsertDemo(Admin, { email: 'demo.admin@anvaya.test' }, {
+    name: 'Anvaya Demo Admin', email: 'demo.admin@anvaya.test', role: 'superadmin'
+  });
+
   const demoWorkers = buildWorkers();
   for (const worker of demoWorkers) {
     await upsertDemo(Worker, { email: worker.email }, {
@@ -107,7 +112,7 @@ async function main() {
 
   console.log(`Demo users are ready. ${demoWorkers.length} demo workers seeded.`);
   console.log('Demo workers have unique names, skills, ratings, experience and locations across 10 Indian city regions.');
-  console.log('Password for all demo users:', DEMO_PASSWORD);
+  console.log('Demo customer/worker/admin/contractor password:', DEMO_PASSWORD);
   await mongoose.disconnect();
 }
 
