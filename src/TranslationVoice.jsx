@@ -432,24 +432,46 @@ function TranslationVoice({ onBack,onContinue }) {
                 </div>
               </div>
             </section>
+        { /* <section className="relative overflow-hidden rounded-3xl border border-slate-100 bg-slate-900 p-6 text-white shadow-lg">
+  <div className="min-w-0">
+    <p className="m-0 w-full break-words text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
+      Anvaya
+    </p>
 
-            <section className="rounded-3xl border border-slate-100 bg-slate-900 p-6 text-white shadow-lg">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
-                Anvaya
-              </p>
+    <h2 className="mt-3 w-full break-words text-xl font-bold">
+      {language === "en"
+        ? "Simple. Local. Trusted."
+        : "आसान। स्थानीय। भरोसेमंद।"}
+    </h2>
 
-              <h2 className="mt-3 text-xl font-bold">
-                {language === "en"
-                  ? "Simple. Local. Trusted."
-                  : "आसान। स्थानीय। भरोसेमंद।"}
-              </h2>
+    <p className="mt-3 w-full break-words text-sm leading-6 text-slate-300">
+      {language === "en"
+        ? "Describe your problem and connect with the right professional."
+        : "अपनी समस्या बताएं और सही प्रोफेशनल से जुड़ें।"}
+    </p>
+  </div>
+</section>
+             */
+             }
+             <section className="relative w-full overflow-hidden rounded-3xl border border-slate-100 bg-slate-900 p-6 text-white shadow-lg">
+  <p className="m-0 block w-full text-xs font-bold uppercase tracking-[0.16em] text-amber-300">
+  -ANVAYA
+  </p>
 
-              <p className="mt-3 text-sm leading-6 text-slate-300">
-                {language === "en"
-                  ? "Describe your problem and connect with the right professional."
-                  : "अपनी समस्या बताएं और सही प्रोफेशनल से जुड़ें।"}
-              </p>
-            </section>
+  <h2 className="mt-3 block w-full text-xl font-bold text-white">
+    {language === "en"
+      ? "Simple. Local. Trusted."
+      : "आसान। स्थानीय। भरोसेमंद।"}
+  </h2>
+
+  <p className="mt-3 block w-full text-sm leading-6 text-slate-300">
+    {language === "en"
+      ? "  -Describe your problem and connect with the right professional."
+      : "अपनी समस्या बताएं और सही प्रोफेशनल से जुड़ें।"}
+  </p>
+</section>
+
+            
           </aside>
         </div>
       </section>

@@ -22,10 +22,6 @@ function Login({ role, onSuccess, onBack }) {
 
     setError("");
 
-    // -------------------------------
-    // CONTRACTOR VALIDATION
-    // -------------------------------
-
     if (isContractor) {
       if (!fullName.trim()) {
         setError("Please enter your full name.");
@@ -61,13 +57,7 @@ function Login({ role, onSuccess, onBack }) {
         setError("Please enter your password.");
         return;
       }
-    }
-
-    // -------------------------------
-    // WORKER / CUSTOMER VALIDATION
-    // -------------------------------
-
-    else {
+    } else {
       if (!phone.trim()) {
         setError("Please enter your phone number.");
         return;
@@ -86,7 +76,6 @@ function Login({ role, onSuccess, onBack }) {
 
     setLoggingIn(true);
 
-    // Demo login simulation
     setTimeout(() => {
       setLoggingIn(false);
       setSuccess(true);
@@ -132,122 +121,256 @@ function Login({ role, onSuccess, onBack }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#FFF8F3] px-5 py-7 text-slate-800 sm:px-8">
+    <main className="min-h-screen w-full bg-[#FFF8F3] px-4 py-5 text-slate-800 sm:px-6 sm:py-7 lg:px-8">
 
       {/* BACK BUTTON */}
 
-      <button
-        onClick={onBack}
-        className="fixed right-5 top-5 z-50 flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-md transition-all duration-300 hover:-translate-x-1 hover:border-amber-300 hover:text-amber-700 hover:shadow-lg"
-      >
-        <span className="text-lg">←</span>
-        <span>Back</span>
-      </button>
+      <div className="mx-auto flex w-full max-w-[1500px] justify-end">
 
-      <div className="mx-auto flex min-h-[90vh] max-w-6xl items-center justify-center">
+        <button
+          type="button"
+          onClick={onBack}
+          className="group flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-md transition-all duration-300 hover:-translate-x-1 hover:border-amber-300 hover:text-amber-700 hover:shadow-lg active:scale-95"
+        >
+          <span className="text-lg transition-transform duration-300 group-hover:-translate-x-1">
+            ←
+          </span>
 
-        <div className="grid w-full overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-2xl lg:grid-cols-2">
+          <span>Back</span>
+        </button>
 
-          {/* =======================================
+      </div>
+
+
+      {/* MAIN CONTAINER */}
+
+      <div className="mx-auto flex w-full max-w-[1500px] items-center justify-center py-5 sm:py-8 lg:min-h-[calc(100vh-100px)] lg:py-8">
+
+        <div
+          className="
+            grid
+            w-full
+            overflow-hidden
+            rounded-[1.75rem]
+            border
+            border-amber-100
+            bg-white
+            shadow-2xl
+            sm:rounded-[2rem]
+            lg:grid-cols-2
+          "
+        >
+
+          {/* =====================================================
               LEFT SIDE
-          ======================================= */}
+          ===================================================== */}
 
-          <section className="flex flex-col justify-center bg-[#FFF1E6] px-7 py-12 sm:px-12 lg:px-14">
+          <section
+            className="
+              relative
+              flex
+              flex-col
+              justify-center
+              overflow-hidden
+              bg-[#FFF1E6]
+              px-6
+              py-10
+              sm:px-10
+              sm:py-12
+              md:px-14
+              lg:min-h-[680px]
+              lg:px-[clamp(2.5rem,5vw,5rem)]
+              lg:py-14
+              xl:min-h-[720px]
+            "
+          >
 
-            <img
-              src="/anvaya-logo.png"
-              alt="Anvaya"
-              className="mb-8 h-20 w-auto object-contain object-left"
-            />
+            {/* Decorative background */}
 
-            <div className="flex w-fit items-center rounded-full border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-700 shadow-sm">
-              {getRoleTitle()}
-            </div>
+            <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/50" />
 
-            <h1 className="mt-6 max-w-xl text-4xl font-bold leading-tight text-slate-900 sm:text-5xl">
-              Welcome to{" "}
-              <span className="text-amber-600">Anvaya.</span>
-            </h1>
+            <div className="pointer-events-none absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-amber-100/40" />
 
-            <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
-              {getDescription()}
-            </p>
 
-            <div className="mt-8 space-y-4">
+            <div className="relative z-10">
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
-                  ✓
-                </div>
+              {/* LOGO */}
 
-                <span className="text-sm font-semibold text-slate-700">
-                  Trusted Anvaya community
-                </span>
+              <img
+                src="/anvaya-logo.png"
+                alt="Anvaya"
+                className="
+                  mb-7
+                  h-14
+                  w-auto
+                  object-contain
+                  object-left
+                  sm:mb-8
+                  sm:h-16
+                  md:h-[4.5rem]
+                  lg:h-[5rem]
+                  xl:h-[5.5rem]
+                "
+              />
+
+
+              {/* ROLE BADGE */}
+
+              <div className="flex w-fit items-center rounded-full border border-amber-200 bg-white px-3.5 py-2 text-xs font-bold text-amber-700 shadow-sm sm:px-4 sm:text-sm">
+                {getRoleTitle()}
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm">
-                  ⚡
-                </div>
 
-                <span className="text-sm font-semibold text-slate-700">
-                  Quick and simple access
+              {/* HEADING */}
+
+              <h1
+                className="
+                  mt-5
+                  max-w-2xl
+                  text-[clamp(2rem,4vw,3.75rem)]
+                  font-bold
+                  leading-[1.08]
+                  tracking-tight
+                  text-slate-900
+                  sm:mt-6
+                "
+              >
+                Welcome to{" "}
+                <span className="text-amber-600">
+                  Anvaya.
                 </span>
-              </div>
+              </h1>
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-sky-600 shadow-sm">
-                  🔒
-                </div>
 
-                <span className="text-sm font-semibold text-slate-700">
-                  Secure account experience
-                </span>
-              </div>
+              {/* DESCRIPTION */}
 
-              {isContractor && (
+              <p
+                className="
+                  mt-4
+                  max-w-xl
+                  text-[clamp(0.9rem,1.4vw,1.125rem)]
+                  leading-7
+                  text-slate-600
+                  sm:mt-5
+                "
+              >
+                {getDescription()}
+              </p>
+
+
+              {/* BENEFITS */}
+
+              <div className="mt-7 space-y-3 sm:mt-8 sm:space-y-4">
+
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600 shadow-sm">
-                    🏗️
+
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm sm:h-10 sm:w-10">
+                    ✓
                   </div>
 
-                  <span className="text-sm font-semibold text-slate-700">
-                    Manage projects and teams
+                  <span className="text-xs font-semibold text-slate-700 sm:text-sm">
+                    Trusted Anvaya community
                   </span>
+
                 </div>
-              )}
+
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm sm:h-10 sm:w-10">
+                    ⚡
+                  </div>
+
+                  <span className="text-xs font-semibold text-slate-700 sm:text-sm">
+                    Quick and simple access
+                  </span>
+
+                </div>
+
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-sky-600 shadow-sm sm:h-10 sm:w-10">
+                    🔒
+                  </div>
+
+                  <span className="text-xs font-semibold text-slate-700 sm:text-sm">
+                    Secure account experience
+                  </span>
+
+                </div>
+
+
+                {isContractor && (
+                  <div className="flex items-center gap-3">
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-orange-600 shadow-sm sm:h-10 sm:w-10">
+                      🏗️
+                    </div>
+
+                    <span className="text-xs font-semibold text-slate-700 sm:text-sm">
+                      Manage projects and teams
+                    </span>
+
+                  </div>
+                )}
+
+              </div>
 
             </div>
 
           </section>
 
 
-          {/* =======================================
+          {/* =====================================================
               RIGHT SIDE
-          ======================================= */}
+          ===================================================== */}
 
-          <section className="flex items-center justify-center px-7 py-12 sm:px-12">
+          <section
+            className="
+              flex
+              items-center
+              justify-center
+              px-5
+              py-10
+              sm:px-10
+              sm:py-12
+              md:px-14
+              lg:px-[clamp(2.5rem,5vw,5rem)]
+              lg:py-14
+            "
+          >
 
             {!success ? (
 
               <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-md"
+                className="w-full max-w-xl"
               >
 
-                {/* HEADING */}
+                {/* FORM HEADING */}
 
-                <div className="mb-8">
+                <div className="mb-7 sm:mb-8">
 
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-700">
-                    {isContractor ? "Contractor Registration" : "Sign In"}
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700 sm:text-sm">
+                    {isContractor
+                      ? "Contractor Registration"
+                      : "Sign In"}
                   </p>
 
-                  <h2 className="mt-2 text-3xl font-bold text-slate-900">
+                  <h2
+                    className="
+                      mt-2
+                      text-[clamp(1.75rem,3vw,2.5rem)]
+                      font-bold
+                      leading-tight
+                      text-slate-900
+                    "
+                  >
                     {getAccountTitle()}
                   </h2>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
+                  <p className="mt-2 max-w-lg text-sm leading-6 text-slate-500 sm:text-base">
                     {isContractor
                       ? "Enter your professional details to continue."
                       : "Enter your account details to continue."}
@@ -256,16 +379,16 @@ function Login({ role, onSuccess, onBack }) {
                 </div>
 
 
-                {/* ===================================
-                    CONTRACTOR EXTRA DETAILS
-                =================================== */}
+                {/* =================================================
+                    CONTRACTOR DETAILS
+                ================================================= */}
 
                 {isContractor && (
-                  <>
+                  <div className="space-y-5">
 
                     {/* FULL NAME */}
 
-                    <div className="mb-5">
+                    <div>
 
                       <label
                         htmlFor="full-name"
@@ -283,7 +406,25 @@ function Login({ role, onSuccess, onBack }) {
                           setError("");
                         }}
                         placeholder="Enter your full name"
-                        className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-200
+                          bg-[#FFFDFC]
+                          px-4
+                          py-3.5
+                          text-sm
+                          text-slate-800
+                          outline-none
+                          transition-all
+                          duration-300
+                          placeholder:text-slate-400
+                          hover:border-amber-300
+                          focus:border-amber-400
+                          focus:ring-4
+                          focus:ring-amber-100
+                        "
                       />
 
                     </div>
@@ -291,7 +432,7 @@ function Login({ role, onSuccess, onBack }) {
 
                     {/* BUSINESS NAME */}
 
-                    <div className="mb-5">
+                    <div>
 
                       <label
                         htmlFor="business-name"
@@ -309,7 +450,25 @@ function Login({ role, onSuccess, onBack }) {
                           setError("");
                         }}
                         placeholder="Example: Sharma Construction"
-                        className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-200
+                          bg-[#FFFDFC]
+                          px-4
+                          py-3.5
+                          text-sm
+                          text-slate-800
+                          outline-none
+                          transition-all
+                          duration-300
+                          placeholder:text-slate-400
+                          hover:border-amber-300
+                          focus:border-amber-400
+                          focus:ring-4
+                          focus:ring-amber-100
+                        "
                       />
 
                     </div>
@@ -319,7 +478,7 @@ function Login({ role, onSuccess, onBack }) {
 
                     <div className="grid gap-5 sm:grid-cols-2">
 
-                      <div className="mb-5">
+                      <div>
 
                         <label
                           htmlFor="contractor-phone"
@@ -337,13 +496,31 @@ function Login({ role, onSuccess, onBack }) {
                             setError("");
                           }}
                           placeholder="Phone number"
-                          className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-200
+                            bg-[#FFFDFC]
+                            px-4
+                            py-3.5
+                            text-sm
+                            text-slate-800
+                            outline-none
+                            transition-all
+                            duration-300
+                            placeholder:text-slate-400
+                            hover:border-amber-300
+                            focus:border-amber-400
+                            focus:ring-4
+                            focus:ring-amber-100
+                          "
                         />
 
                       </div>
 
 
-                      <div className="mb-5">
+                      <div>
 
                         <label
                           htmlFor="contractor-location"
@@ -361,7 +538,25 @@ function Login({ role, onSuccess, onBack }) {
                             setError("");
                           }}
                           placeholder="City / area"
-                          className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-slate-200
+                            bg-[#FFFDFC]
+                            px-4
+                            py-3.5
+                            text-sm
+                            text-slate-800
+                            outline-none
+                            transition-all
+                            duration-300
+                            placeholder:text-slate-400
+                            hover:border-amber-300
+                            focus:border-amber-400
+                            focus:ring-4
+                            focus:ring-amber-100
+                          "
                         />
 
                       </div>
@@ -371,7 +566,7 @@ function Login({ role, onSuccess, onBack }) {
 
                     {/* SERVICE */}
 
-                    <div className="mb-5">
+                    <div>
 
                       <label
                         htmlFor="service"
@@ -387,7 +582,24 @@ function Login({ role, onSuccess, onBack }) {
                           setService(e.target.value);
                           setError("");
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                        className="
+                          w-full
+                          rounded-xl
+                          border
+                          border-slate-200
+                          bg-white
+                          px-4
+                          py-3.5
+                          text-sm
+                          text-slate-800
+                          outline-none
+                          transition-all
+                          duration-300
+                          hover:border-amber-300
+                          focus:border-amber-400
+                          focus:ring-4
+                          focus:ring-amber-100
+                        "
                       >
 
                         <option value="">
@@ -426,13 +638,13 @@ function Login({ role, onSuccess, onBack }) {
 
                     </div>
 
-                  </>
+                  </div>
                 )}
 
 
-                {/* ===================================
-                    PHONE FOR WORKER / CUSTOMER
-                =================================== */}
+                {/* =================================================
+                    PHONE — WORKER / CUSTOMER
+                ================================================= */}
 
                 {!isContractor && (
                   <div className="mb-5">
@@ -453,18 +665,36 @@ function Login({ role, onSuccess, onBack }) {
                         setError("");
                       }}
                       placeholder="Enter your phone number"
-                      className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                      className="
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-200
+                        bg-[#FFFDFC]
+                        px-4
+                        py-3.5
+                        text-sm
+                        text-slate-800
+                        outline-none
+                        transition-all
+                        duration-300
+                        placeholder:text-slate-400
+                        hover:border-amber-300
+                        focus:border-amber-400
+                        focus:ring-4
+                        focus:ring-amber-100
+                      "
                     />
 
                   </div>
                 )}
 
 
-                {/* ===================================
+                {/* =================================================
                     PASSWORD
-                =================================== */}
+                ================================================= */}
 
-                <div className="mb-5">
+                <div className="mt-5">
 
                   <label
                     htmlFor="login-password"
@@ -484,15 +714,46 @@ function Login({ role, onSuccess, onBack }) {
                         setError("");
                       }}
                       placeholder="Enter your password"
-                      className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 pr-20 text-sm text-slate-800 outline-none transition-all duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                      className="
+                        w-full
+                        rounded-xl
+                        border
+                        border-slate-200
+                        bg-[#FFFDFC]
+                        px-4
+                        py-3.5
+                        pr-20
+                        text-sm
+                        text-slate-800
+                        outline-none
+                        transition-all
+                        duration-300
+                        placeholder:text-slate-400
+                        hover:border-amber-300
+                        focus:border-amber-400
+                        focus:ring-4
+                        focus:ring-amber-100
+                      "
                     />
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setShowPassword(!showPassword)
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-bold text-slate-500 transition hover:bg-amber-50 hover:text-amber-700"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="
+                        absolute
+                        right-3
+                        top-1/2
+                        -translate-y-1/2
+                        rounded-lg
+                        px-2
+                        py-1
+                        text-xs
+                        font-bold
+                        text-slate-500
+                        transition
+                        hover:bg-amber-50
+                        hover:text-amber-700
+                      "
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>
@@ -505,18 +766,43 @@ function Login({ role, onSuccess, onBack }) {
                 {/* ERROR */}
 
                 {error && (
-                  <div className="mb-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium leading-6 text-red-600">
+                  <div className="mt-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium leading-6 text-red-600">
                     {error}
                   </div>
                 )}
 
 
-                {/* LOGIN / CONTINUE BUTTON */}
+                {/* SUBMIT BUTTON */}
 
                 <button
                   type="submit"
                   disabled={loggingIn}
-                  className="group flex w-full items-center justify-center gap-3 rounded-xl bg-amber-600 px-6 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+                  className="
+                    group
+                    mt-6
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                    gap-3
+                    rounded-xl
+                    bg-amber-600
+                    px-6
+                    py-3.5
+                    text-sm
+                    font-bold
+                    text-white
+                    shadow-lg
+                    transition-all
+                    duration-300
+                    hover:-translate-y-1
+                    hover:bg-amber-700
+                    hover:shadow-xl
+                    sm:py-4
+                    sm:text-base
+                    disabled:cursor-not-allowed
+                    disabled:opacity-70
+                  "
                 >
 
                   {loggingIn ? (
@@ -546,6 +832,8 @@ function Login({ role, onSuccess, onBack }) {
                 </button>
 
 
+                {/* NOTE */}
+
                 <p className="mt-5 text-center text-xs leading-5 text-slate-400">
                   {isContractor
                     ? "Your professional details will be used to set up your contractor workspace."
@@ -556,43 +844,73 @@ function Login({ role, onSuccess, onBack }) {
 
             ) : (
 
-              /* ===================================
+              /* =================================================
                  SUCCESS SCREEN
-              =================================== */
+              ================================================= */
 
-              <div className="flex w-full max-w-md flex-col items-center justify-center py-10 text-center">
+              <div className="flex w-full max-w-xl flex-col items-center justify-center py-8 text-center sm:py-10">
 
                 <div className="relative">
 
-                  <div className="flex h-28 w-28 items-center justify-center rounded-full bg-emerald-50 text-6xl text-emerald-600 shadow-xl shadow-emerald-100">
+                  <div
+                    className="
+                      flex
+                      h-24
+                      w-24
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-emerald-50
+                      text-5xl
+                      text-emerald-600
+                      shadow-xl
+                      shadow-emerald-100
+                      sm:h-28
+                      sm:w-28
+                      sm:text-6xl
+                    "
+                  >
                     ✓
                   </div>
 
-                  <div className="absolute -right-2 -top-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow-md">
+                  <div className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-md sm:h-10 sm:w-10 sm:text-xl">
                     ✨
                   </div>
 
                 </div>
 
-                <p className="mt-8 text-sm font-bold uppercase tracking-[0.16em] text-emerald-600">
+
+                <p className="mt-7 text-xs font-bold uppercase tracking-[0.16em] text-emerald-600 sm:mt-8 sm:text-sm">
                   {isContractor
                     ? "Profile Created"
                     : "Login Successful"}
                 </p>
 
-                <h2 className="mt-3 text-3xl font-bold leading-tight text-slate-900 sm:text-4xl">
+
+                <h2
+                  className="
+                    mt-3
+                    max-w-xl
+                    text-[clamp(1.8rem,3vw,2.5rem)]
+                    font-bold
+                    leading-tight
+                    text-slate-900
+                  "
+                >
                   {isContractor
                     ? "Welcome, Contractor! 🎉"
                     : "You're successfully logged in! 🎉"}
                 </h2>
 
-                <p className="mt-4 max-w-md text-base leading-7 text-slate-500">
+
+                <p className="mt-4 max-w-lg text-sm leading-7 text-slate-500 sm:text-base">
                   {isContractor
                     ? "Your contractor workspace is ready. We're taking you to your dashboard."
                     : "Welcome to Anvaya. Your account has been successfully verified and we're getting everything ready for you."}
                 </p>
 
-                <div className="mt-7 rounded-full border border-emerald-100 bg-emerald-50 px-6 py-3 text-sm font-bold text-emerald-700">
+
+                <div className="mt-6 rounded-full border border-emerald-100 bg-emerald-50 px-5 py-2.5 text-xs font-bold text-emerald-700 sm:px-6 sm:py-3 sm:text-sm">
                   ✓{" "}
                   {isWorker
                     ? "Worker"
@@ -602,9 +920,11 @@ function Login({ role, onSuccess, onBack }) {
                   account verified
                 </div>
 
-                <div className="mt-7 h-1.5 w-48 overflow-hidden rounded-full bg-emerald-100">
+
+                <div className="mt-6 h-1.5 w-40 overflow-hidden rounded-full bg-emerald-100 sm:mt-7 sm:w-48">
                   <div className="h-full w-full animate-pulse rounded-full bg-emerald-500" />
                 </div>
+
 
                 <p className="mt-4 text-xs font-medium text-slate-400">
                   Taking you to your dashboard...

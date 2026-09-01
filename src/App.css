@@ -1,60 +1,162 @@
 @import "tailwindcss";
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 50px;
-  background: white;
+
+/* =========================================================
+   ANVAYA GLOBAL STYLES
+   Responsive foundation — design preserved
+   ========================================================= */
+
+
+/* ================= UNIVERSAL BOX SIZING ================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-nav h2 {
-  font-size: 28px;
+
+/* ================= DOCUMENT SETUP ================= */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-nav div {
-  display: flex;
-  gap: 25px;
+
+/* ================= BODY ================= */
+
+body {
+  overflow-x: hidden;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  /* Makes text rendering cleaner */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-nav a {
-  text-decoration: none;
-  color: #1e293b;
-  font-size: 16px;
-}
-nav a:hover {
-  color: #2563eb;
-}
-main {
-  min-height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 40px 20px;
+
+/* ================= RESPONSIVE MEDIA ================= */
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
-main h1 {
-  font-size: 52px;
-  margin-bottom: 15px;
+
+/* ================= FORM ELEMENTS ================= */
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  max-width: 100%;
 }
 
-main p {
-  font-size: 20px;
-  color: #64748b;
-  max-width: 600px;
+
+/* ================= TEXT WRAPPING ================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+button,
+a {
+  overflow-wrap: break-word;
 }
-main button {
-  margin-top: 30px;
-  padding: 12px 28px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
+
+
+/* ================= DEFAULT MARGINS ================= */
+
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+}
+
+
+/* ================= RESPONSIVE FORM ELEMENTS ================= */
+
+textarea,
+input,
+select {
+  max-width: 100%;
+}
+
+
+/* ================= BUTTON BEHAVIOUR ================= */
+
+button {
   cursor: pointer;
 }
 
-main button:hover {
-  background: #1d4ed8;
+
+/* ================= MOBILE SAFETY ================= */
+
+/*
+  Prevents very long words / IDs / text
+  from breaking the layout on small screens.
+*/
+
+body {
+  word-break: normal;
+}
+
+
+/* ================= SMALL SCREEN ADJUSTMENT ================= */
+
+/*
+  Prevents horizontal scrolling caused by
+  oversized fixed-width elements.
+*/
+
+@media (max-width: 640px) {
+  body {
+    width: 100%;
+    min-width: 0;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    min-width: 0;
+  }
+}
+
+
+/* ================= LARGE SCREEN FOUNDATION ================= */
+
+/*
+  Keeps very large displays comfortable without
+  forcing the whole application to stretch infinitely.
+*/
+
+@media (min-width: 1536px) {
+  body {
+    min-width: 0;
+  }
 }

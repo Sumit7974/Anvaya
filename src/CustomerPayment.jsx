@@ -1,8 +1,32 @@
 import { useState } from "react";
 
-function CustomerPayment({worker, onNext, onBack }) {
+function CustomerPayment({worker,booking, onNext, onBack }) {
   const [paymentMethod, setPaymentMethod] = useState("upi");
   const [paying, setPaying] = useState(false);
+  const service =
+  booking?.service ||
+  worker?.service ||
+  worker?.skill ||
+  "Selected Service";
+
+const location =
+  booking?.location ||
+  worker?.location ||
+  "Service Location";
+
+const amount =
+  Number(
+    booking?.amount ||
+    booking?.budget ||
+    worker?.amount ||
+    worker?.price ||
+    0
+  );
+
+const projectName =
+  booking?.projectName ||
+  booking?.name ||
+  service;
 
   const handlePayment = (e) => {
     e.preventDefault();
@@ -16,7 +40,7 @@ function CustomerPayment({worker, onNext, onBack }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#FFF8F3] px-5 py-7 text-slate-800 sm:px-8">
+    <main className="min-h-screen w-full bg-[#FFF8F3] px-4 py-7 text-slate-800 sm:px-6 lg:px-10 xl:px-16">
 
       {/* Back Button */}
       <button
@@ -28,7 +52,7 @@ function CustomerPayment({worker, onNext, onBack }) {
         <span>Back</span>
       </button>
 
-      <div className="mx-auto max-w-5xl pt-10">
+      <div className="mx-auto flex min-h-[calc(100vh-3.5rem)] w-full flex-col justify-center pt-10">
 
         {/* Header */}
         <div className="text-center">
@@ -48,13 +72,13 @@ function CustomerPayment({worker, onNext, onBack }) {
           </h1>
 
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-            Make a secure payment to confirm your service booking.
+                Make a secure payment to confirm your service booking.
           </p>
 
         </div>
 
         {/* Main Card */}
-        <div className="mx-auto mt-9 grid max-w-4xl overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-xl lg:grid-cols-2">
+        <div className="mx-auto mt-9 grid min-h-[560px] w-full overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-xl lg:min-h-[650px] lg:grid-cols-2">
 
           {/* Booking Summary */}
           <section className="bg-[#FFF1E6] px-7 py-9 sm:px-10">
@@ -63,11 +87,11 @@ function CustomerPayment({worker, onNext, onBack }) {
 
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
-                  Booking Summary
+                 -- Booking Summary
                 </p>
 
                 <h2 className="mt-2 text-2xl font-bold text-slate-900">
-                  Home Electrical Service
+                  {projectName}
                 </h2>
               </div>
 
@@ -95,7 +119,7 @@ function CustomerPayment({worker, onNext, onBack }) {
                 </span>
 
                 <span className="text-sm font-bold text-slate-800">
-                  Electrical Repair
+                  {service}
                 </span>
               </div>
 
@@ -105,7 +129,7 @@ function CustomerPayment({worker, onNext, onBack }) {
                 </span>
 
                 <span className="text-sm font-bold text-slate-800">
-                  Nearby
+                  {location}
                 </span>
               </div>
 
@@ -120,7 +144,7 @@ function CustomerPayment({worker, onNext, onBack }) {
                 </span>
 
                 <span className="text-3xl font-bold text-amber-700">
-                  ₹850
+                 {amount > 0 ? `₹${amount.toLocaleString("en-IN")}` : "Amount not set"}
                 </span>
 
               </div>
@@ -290,7 +314,9 @@ function CustomerPayment({worker, onNext, onBack }) {
                   </>
                 ) : (
                   <>
-                    <span>Pay ₹850</span>
+                    <span>
+  {amount > 0 ? `Pay ₹${amount.toLocaleString("en-IN")}` : "Continue"}
+</span>
 
                     <span className="text-xl transition-transform duration-300 group-hover:translate-x-2">
                       →

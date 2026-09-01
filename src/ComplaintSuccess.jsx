@@ -6,7 +6,7 @@ function ComplaintSuccess({ onBack }) {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#FFF8F3] px-5 py-8 text-slate-800 sm:px-8">
+    <main className="min-h-screen w-full bg-[#FFF8F3] px-4 py-7 text-slate-800 sm:px-6 lg:px-10 xl:px-16">
 
       {/* TOP BAR */}
       <div className="mx-auto flex max-w-6xl items-center justify-between">
@@ -28,9 +28,9 @@ function ComplaintSuccess({ onBack }) {
 
 
       {/* SUCCESS CONTENT */}
-      <section className="mx-auto flex min-h-[80vh] max-w-3xl items-center justify-center">
+      <section className="mx-auto flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
 
-        <div className="w-full rounded-[2rem] border border-amber-100 bg-white px-7 py-12 text-center shadow-2xl sm:px-12">
+        <div className="w-full max-w-5xl rounded-[2rem] border border-amber-100 bg-white px-7 py-14 text-center shadow-2xl sm:px-12 lg:px-16">
 
           {/* SUCCESS ICON */}
           <div className="relative mx-auto w-fit">

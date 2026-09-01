@@ -3,7 +3,7 @@ import { useState } from "react";
 import RoleSelect from "./RoleSelect";
 import Login from "./Login";
 import CustomerBooking from "./CustomerBooking";
-import WorkerDashboard from "./WorkerDashboard"; // Case fixed
+import Workerdashboard from "./Workerdashboard"; // Case fixed
 import TranslationVoice from "./TranslationVoice";
 
 import ContractorDashboard from "./ContractorDashboard";
@@ -21,10 +21,11 @@ import WorkerProcess from "./WorkerProcess";
 import ProjectAssigned from "./projectAssigned";
 import WorkProcessStarted from "./WorkProcessStarted";
 import PaymentSuccess from "./PaymentSuccess";
+import { LanguageProvider, useLanguage } from "./LanguageContext";
 
  
 
-function App() {
+function AppContent() {
   const [page, setPage] = useState("home");
   const [selectedRole, setSelectedRole] = useState("");
 
@@ -46,7 +47,7 @@ function App() {
     if (selectedRole === "customer") {
       setPage("customerBooking");
     } else if (selectedRole === "worker") {
-      setPage("workerDashboard");
+      setPage("workerdashboard");
     } else if (selectedRole === "contractor") {
       setPage("contractorDashboard");
     } else if (selectedRole === "admin") {
@@ -251,8 +252,8 @@ case "projectDetails":
 
   /* ================= WORKER FLOW ================= */
 
-  if (page === "workerDashboard") {
-    return <WorkerDashboard onBack={handleBack} />;
+  if (page === "workerdashboard") {
+    return <Workerdashboard onBack={handleBack} />;
   }
 
   /* ================= CONTRACTOR FLOW ================= */
@@ -428,4 +429,12 @@ if (page === "WorkProcessStarted") {
   );
 
 }
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
+
 export default App;

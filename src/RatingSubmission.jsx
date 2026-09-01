@@ -33,7 +33,7 @@ function RatingSubmission({ onSubmit, onComplaint, onBack }) {
   };
 
   return (
-    <main className="min-h-screen bg-[#FFF8F3] px-5 py-7 text-slate-800 sm:px-8">
+    <main className="min-h-screen w-full bg-[#FFF8F3] px-4 py-7 text-slate-800 sm:px-6 lg:px-10 xl:px-16">
 
       <div className="mx-auto flex max-w-6xl items-center justify-between">
         <button
@@ -48,9 +48,8 @@ function RatingSubmission({ onSubmit, onComplaint, onBack }) {
           Anvaya
         </div>
       </div>
-
-      <div className="mx-auto mt-8 flex min-h-[82vh] max-w-5xl items-center justify-center">
-        <div className="grid w-full overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-2xl lg:grid-cols-[0.85fr_1.15fr]">
+<div className="mx-auto mt-8 flex min-h-[calc(100vh-8rem)] w-full items-center justify-center">
+        <div className="grid min-h-[560px] w-full overflow-hidden rounded-[2rem] border border-amber-100 bg-white shadow-2xl lg:min-h-[650px] lg:grid-cols-[0.85fr_1.15fr]">
 
           <section className="relative overflow-hidden bg-[#FFF1E6] px-7 py-10 sm:px-10 lg:px-12">
 
