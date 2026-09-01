@@ -46,7 +46,6 @@ function CustomerBooking({ onBack, onSelectWorker }) {
   const [selected, setSelected] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [serviceLocation, setServiceLocation] = useState(initialLocation);
-  const [locationStatus, setLocationStatus] = useState(initialLocation ? 'ready' : (navigator.geolocation ? 'loading' : 'unsupported'));
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [addressQuery, setAddressQuery] = useState('');
   const [addressResults, setAddressResults] = useState([]);
@@ -66,7 +65,6 @@ function CustomerBooking({ onBack, onSelectWorker }) {
       label: coords.label || 'Selected service location'
     };
     setServiceLocation(next);
-    setLocationStatus('ready');
     setError('');
     localStorage.setItem('anvaya_customer_location', JSON.stringify(next));
     setShowLocationPicker(false);
@@ -82,7 +80,6 @@ function CustomerBooking({ onBack, onSelectWorker }) {
       },
       locationError => {
         if (!alive) return;
-        setLocationStatus('denied');
         setError(locationError.code === 1 ? 'Location permission was denied. Choose the service location manually.' : 'We could not detect your location. Choose the service location manually.');
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
@@ -147,10 +144,9 @@ function CustomerBooking({ onBack, onSelectWorker }) {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) { setError('Location is not supported by this browser.'); return; }
-    setLocationStatus('loading');
     navigator.geolocation.getCurrentPosition(
       position => applyLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude, label: 'Current location' }),
-      locationError => { setLocationStatus('denied'); setError(locationError.code === 1 ? 'Location permission was denied.' : 'Could not get your current location.'); },
+      locationError => setError(locationError.code === 1 ? 'Location permission was denied.' : 'Could not get your current location.'),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
     );
   };
