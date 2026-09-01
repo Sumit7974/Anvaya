@@ -1,16 +1,28 @@
 const mongoose = require('mongoose');
 
-const pointSchema = {
-  type: { type: String, enum: ['Point'], required: true, default: 'Point' },
-  coordinates: {
-    type: [Number],
-    required: true,
-    validate: {
-      validator: value => Array.isArray(value) && value.length === 2 && value.every(Number.isFinite),
-      message: 'Location must contain longitude and latitude'
+const pointSchema = new mongoose.Schema(
+  {
+    type: { type: String, enum: ['Point'], required: true, default: 'Point' },
+    coordinates: {
+      type: [Number],
+      required: true,
+      validate: {
+        validator: value => {
+          if (!Array.isArray(value) || value.length !== 2) return false;
+          const [longitude, latitude] = value;
+          return Number.isFinite(longitude)
+            && Number.isFinite(latitude)
+            && longitude >= -180
+            && longitude <= 180
+            && latitude >= -90
+            && latitude <= 90;
+        },
+        message: 'Location must contain valid [longitude, latitude] coordinates'
+      }
     }
-  }
-};
+  },
+  { _id: false }
+);
 
 const bookingSchema = new mongoose.Schema(
   {
