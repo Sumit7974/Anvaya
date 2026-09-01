@@ -686,6 +686,69 @@
 // export default CustomerProfile;
 import { useMemo, useState } from "react";
 
+const WORKERS = [
+  {
+    id: 1,
+    name: "Rahul Verma",
+    skill: "Electrician",
+    experience: "6 years",
+    rating: "4.9",
+    jobs: "120+",
+    location: "Nearby · 1.2 km",
+    icon: "⚡",
+    about:
+      "Experienced electrician specializing in home wiring, fan installation, lighting and electrical repairs.",
+  },
+  {
+    id: 2,
+    name: "Amit Sharma",
+    skill: "Plumber",
+    experience: "5 years",
+    rating: "4.8",
+    jobs: "95+",
+    location: "Nearby · 1.8 km",
+    icon: "🔧",
+    about:
+      "Reliable plumber for bathroom repairs, pipe fitting, leakage fixes and household plumbing work.",
+  },
+  {
+    id: 3,
+    name: "Vikas Patel",
+    skill: "Carpenter",
+    experience: "8 years",
+    rating: "4.9",
+    jobs: "150+",
+    location: "Nearby · 2.1 km",
+    icon: "🪚",
+    about:
+      "Skilled carpenter experienced in furniture repair, doors, cabinets and custom woodwork.",
+  },
+  {
+    id: 4,
+    name: "Rohit Singh",
+    skill: "Painter",
+    experience: "4 years",
+    rating: "4.7",
+    jobs: "80+",
+    location: "Nearby · 2.6 km",
+    icon: "🎨",
+    about:
+      "Professional painter providing interior, exterior and finishing services for homes and shops.",
+  },
+  {
+    id: 5,
+    name: "Suresh Yadav",
+    skill: "Mason",
+    experience: "9 years",
+    rating: "4.8",
+    jobs: "180+",
+    location: "Nearby · 3.0 km",
+    icon: "🧱",
+    about:
+      "Experienced mason for renovation, brickwork, plastering, flooring and general construction work.",
+  },
+];
+
 function CustomerProfile({ onBack }) {
   const [selectedService, setSelectedService] = useState("All");
   const [search, setSearch] = useState("");
@@ -695,69 +758,7 @@ function CustomerProfile({ onBack }) {
   const [customNeed, setCustomNeed] = useState("");
   const [requirementSent, setRequirementSent] = useState(false);
 
-  const workers = [
-    {
-      id: 1,
-      name: "Rahul Verma",
-      skill: "Electrician",
-      experience: "6 years",
-      rating: "4.9",
-      jobs: "120+",
-      location: "Nearby · 1.2 km",
-      icon: "⚡",
-      about:
-        "Experienced electrician specializing in home wiring, fan installation, lighting and electrical repairs.",
-    },
-    {
-      id: 2,
-      name: "Amit Sharma",
-      skill: "Plumber",
-      experience: "5 years",
-      rating: "4.8",
-      jobs: "95+",
-      location: "Nearby · 1.8 km",
-      icon: "🔧",
-      about:
-        "Reliable plumber for bathroom repairs, pipe fitting, leakage fixes and household plumbing work.",
-    },
-    {
-      id: 3,
-      name: "Vikas Patel",
-      skill: "Carpenter",
-      experience: "8 years",
-      rating: "4.9",
-      jobs: "150+",
-      location: "Nearby · 2.1 km",
-      icon: "🪚",
-      about:
-        "Skilled carpenter experienced in furniture repair, doors, cabinets and custom woodwork.",
-    },
-    {
-      id: 4,
-      name: "Rohit Singh",
-      skill: "Painter",
-      experience: "4 years",
-      rating: "4.7",
-      jobs: "80+",
-      location: "Nearby · 2.6 km",
-      icon: "🎨",
-      about:
-        "Professional painter providing interior, exterior and finishing services for homes and shops.",
-    },
-    {
-      id: 5,
-      name: "Suresh Yadav",
-      skill: "Mason",
-      experience: "9 years",
-      rating: "4.8",
-      jobs: "180+",
-      location: "Nearby · 3.0 km",
-      icon: "🧱",
-      about:
-        "Experienced mason for renovation, brickwork, plastering, flooring and general construction work.",
-    },
-  ];
-
+  
   const services = [
     "All",
     "Electrician",
@@ -770,7 +771,7 @@ function CustomerProfile({ onBack }) {
   const filteredWorkers = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return workers.filter((worker) => {
+    return WORKERS.filter((worker) => {
       const matchesService =
         selectedService === "All" ||
         worker.skill === selectedService;
