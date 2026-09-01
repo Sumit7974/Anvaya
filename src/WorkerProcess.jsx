@@ -3,14 +3,14 @@ import { apiRequest, getStoredToken } from './api/client';
 
 const steps = ['requested', 'accepted', 'in-progress', 'completion-pending', 'completed'];
 const labels = { requested: 'Request Sent', 'quote-pending': 'Price Proposed', accepted: 'Accepted', 'in-progress': 'Work Started', 'completion-pending': 'Verify Work', completed: 'Completed', disputed: 'Disputed', expired: 'Timed Out' };
-const RESPONSE_WINDOW_MS = 2 * 60 * 1000;
+
 
 function WorkerProcess({ worker, bookingId, onBack, onProceedToPayment, onComplaint, onRetryWorker }) {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(0);
 
   const load = useCallback(async () => {
     try {
