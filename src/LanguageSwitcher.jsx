@@ -4,18 +4,8 @@ function LanguageSwitcher({ language, onLanguageChange }) {
   const [open, setOpen] = useState(false);
 
   const languages = [
-    {
-      code: "en",
-      label: "English",
-      short: "EN",
-      flag: "🇬🇧",
-    },
-    {
-      code: "hi",
-      label: "हिन्दी",
-      short: "हि",
-      flag: "🇮🇳",
-    },
+    { code: "en", label: "English", short: "EN", flag: "🇬🇧" },
+    { code: "hi", label: "हिन्दी", short: "हि", flag: "🇮🇳" },
   ];
 
   const currentLanguage =
@@ -36,9 +26,7 @@ function LanguageSwitcher({ language, onLanguageChange }) {
         aria-expanded={open}
       >
         <span className="text-base">{currentLanguage.flag}</span>
-
         <span>{currentLanguage.short}</span>
-
         <svg
           className={`h-4 w-4 transition-transform duration-300 ${
             open ? "rotate-180" : ""
@@ -63,7 +51,6 @@ function LanguageSwitcher({ language, onLanguageChange }) {
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-40 cursor-default"
           />
-
           <div
             className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-amber-100 bg-white p-2 shadow-xl"
             role="menu"
@@ -71,10 +58,8 @@ function LanguageSwitcher({ language, onLanguageChange }) {
             <p className="px-3 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
               Select language
             </p>
-
             {languages.map((item) => {
               const selected = item.code === language;
-
               return (
                 <button
                   key={item.code}
@@ -88,17 +73,10 @@ function LanguageSwitcher({ language, onLanguageChange }) {
                   role="menuitem"
                 >
                   <span className="text-lg">{item.flag}</span>
-
                   <span className="flex-1">
-                    <span className="block text-sm font-bold">
-                      {item.label}
-                    </span>
-
-                    <span className="block text-xs text-slate-400">
-                      {item.short}
-                    </span>
+                    <span className="block text-sm font-bold">{item.label}</span>
+                    <span className="block text-xs text-slate-400">{item.short}</span>
                   </span>
-
                   {selected && (
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-600 text-xs font-bold text-white">
                       ✓
