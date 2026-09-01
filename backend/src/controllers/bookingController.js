@@ -3,7 +3,6 @@ const Worker = require('../models/Worker');
 
 const MAX_SERVICE_RADIUS_KM = 15;
 const VALID_SERVICES = new Set(['electrician', 'plumber', 'carpenter', 'painter', 'mason']);
-const ACTIVE_WORK_STATUSES = ['accepted', 'quote-pending', 'in-progress', 'completion-pending'];
 
 const normalizePoint = location => {
   if (!location || location.type !== 'Point' || !Array.isArray(location.coordinates) || location.coordinates.length !== 2) return null;
