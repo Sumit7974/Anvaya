@@ -1,60 +1,31 @@
 @import "tailwindcss";
-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 50px;
-  background: white;
+
+/* Anvaya's screens use Tailwind utility classes. Keep this file intentionally light
+   so legacy global nav/main/button rules cannot fight component styling. */
+
+:root {
+  --anvaya-ink: #172033;
+  --anvaya-muted: #64748b;
+  --anvaya-cream: #fffaf6;
+  --anvaya-card: rgba(255, 255, 255, 0.94);
+  --anvaya-border: #f3dfc5;
+  --anvaya-accent: #d97706;
+  --anvaya-accent-dark: #b45309;
 }
 
-nav h2 {
-  font-size: 28px;
+.anvaya-card {
+  background: var(--anvaya-card);
+  border: 1px solid var(--anvaya-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 28px rgba(71, 45, 20, 0.07);
 }
 
-nav div {
-  display: flex;
-  gap: 25px;
+.anvaya-touch-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
-nav a {
-  text-decoration: none;
-  color: #1e293b;
-  font-size: 16px;
-}
-nav a:hover {
-  color: #2563eb;
-}
-main {
-  min-height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-main h1 {
-  font-size: 52px;
-  margin-bottom: 15px;
-}
-
-main p {
-  font-size: 20px;
-  color: #64748b;
-  max-width: 600px;
-}
-main button {
-  margin-top: 30px;
-  padding: 12px 28px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-main button:hover {
-  background: #1d4ed8;
+.anvaya-readable {
+  max-width: 68ch;
+  line-height: 1.7;
 }
