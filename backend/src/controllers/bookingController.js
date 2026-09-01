@@ -2,6 +2,7 @@ const Booking = require('../models/Booking');
 const Worker = require('../models/Worker');
 
 const MAX_SERVICE_RADIUS_KM = 15;
+const RESPONSE_WINDOW_MS = 2 * 60 * 1000;
 const VALID_SERVICES = new Set(['electrician', 'plumber', 'carpenter', 'painter', 'mason']);
 
 const normalizePoint = location => {
@@ -9,6 +10,16 @@ const normalizePoint = location => {
   const [longitude, latitude] = location.coordinates.map(Number);
   if (!Number.isFinite(longitude) || !Number.isFinite(latitude) || longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) return null;
   return { type: 'Point', coordinates: [longitude, latitude] };
+};
+
+const expireTimedOutBookings = async () => {
+  const now = new Date();
+  const expired = await Booking.find({ status: 'requested', worker: { $ne: null }, responseDeadlineAt: { $lte: now } }).select('_id worker');
+  if (!expired.length) return 0;
+  await Booking.updateMany({ _id: { $in: expired.map(b => b._id) }, status: 'requested' }, { $set: { status: 'expired', expiredAt: now, rejectionReason: 'Worker did not respond within the response window' } });
+  const workerIds = [...new Set(expired.map(b => String(b.worker)).filter(Boolean))];
+  if (workerIds.length) await Worker.updateMany({ _id: { $in: workerIds } }, { $set: { isAvailable: true } });
+  return expired.length;
 };
 
 const createBooking = async (req, res) => {
@@ -26,13 +37,20 @@ const createBooking = async (req, res) => {
     if (workerId) {
       const workerFilter = { _id: workerId, isActive: true, isAvailable: true, 'verification.status': 'verified', location: { $near: { $geometry: point, $maxDistance: MAX_SERVICE_RADIUS_KM * 1000 } } };
       if (normalizedService) workerFilter.skills = normalizedService;
-      const worker = await Worker.findOne(workerFilter).select('_id name isActive isAvailable verification skills');
+      // Reserve the selected worker immediately so another customer cannot book them during this response window.
+      const worker = await Worker.findOneAndUpdate(workerFilter, { $set: { isAvailable: false } }, { new: true }).select('_id name isActive isAvailable verification skills');
       if (!worker) return res.status(400).json({ message: 'Selected worker is unavailable, unverified, outside the service area, or does not provide this service' });
       bookingData.worker = worker._id;
+      bookingData.responseDeadlineAt = new Date(Date.now() + RESPONSE_WINDOW_MS);
     }
 
-    const booking = await Booking.create(bookingData);
-    return res.status(201).json({ message: 'Booking request created successfully', booking });
+    try {
+      const booking = await Booking.create(bookingData);
+      return res.status(201).json({ message: 'Booking request created successfully', booking });
+    } catch (createError) {
+      if (bookingData.worker) await Worker.updateOne({ _id: bookingData.worker }, { $set: { isAvailable: true } });
+      throw createError;
+    }
   } catch (error) {
     console.error('Create booking error:', error);
     return res.status(500).json({ message: 'Server error' });
@@ -41,6 +59,7 @@ const createBooking = async (req, res) => {
 
 const getAvailableBookings = async (req, res) => {
   try {
+    await expireTimedOutBookings();
     const bookings = await Booking.find({ status: 'requested', worker: null }).populate('customer', 'name phone email').sort({ createdAt: -1 }).limit(200);
     return res.status(200).json({ count: bookings.length, bookings });
   } catch (error) { console.error('Get available bookings error:', error); return res.status(500).json({ message: 'Server error' }); }
@@ -48,6 +67,7 @@ const getAvailableBookings = async (req, res) => {
 
 const getWorkerBookings = async (req, res) => {
   try {
+    await expireTimedOutBookings();
     const worker = await Worker.findById(req.user.id).select('name email phone skills isAvailable isActive verification rating');
     if (!worker) return res.status(404).json({ message: 'Worker not found' });
     const bookings = await Booking.find({ worker: req.user.id }).populate('customer', 'name phone email').sort({ createdAt: -1 }).limit(200);
@@ -57,13 +77,14 @@ const getWorkerBookings = async (req, res) => {
 
 const acceptBooking = async (req, res) => {
   try {
+    await expireTimedOutBookings();
     const worker = await Worker.findOneAndUpdate({ _id: req.user.id, isActive: true, isAvailable: true, 'verification.status': 'verified' }, { $set: { isAvailable: false } }, { new: true });
     if (!worker) return res.status(403).json({ message: 'You must be active, verified, and available to accept a job.' });
 
-    const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'requested' }, { $set: { status: 'accepted', acceptedAt: new Date() } }, { new: true });
+    const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'requested', $or: [{ responseDeadlineAt: { $exists: false } }, { responseDeadlineAt: { $gt: new Date() } }] }, { $set: { status: 'accepted', acceptedAt: new Date(), responseDeadlineAt: undefined } }, { new: true });
     if (!booking) {
       await Worker.updateOne({ _id: req.user.id }, { $set: { isAvailable: true } });
-      return res.status(404).json({ message: 'Booking not found or no longer available' });
+      return res.status(404).json({ message: 'Booking not found, expired, or no longer available' });
     }
     return res.status(200).json({ message: 'Booking accepted successfully', booking });
   } catch (error) { console.error('Accept booking error:', error); return res.status(500).json({ message: 'Server error' }); }
@@ -71,12 +92,14 @@ const acceptBooking = async (req, res) => {
 
 const rejectBooking = async (req, res) => {
   try {
+    await expireTimedOutBookings();
     const worker = await Worker.findById(req.user.id);
     if (!worker || !worker.isActive) return res.status(403).json({ message: 'Your account is inactive or suspended.' });
     if (worker.verification.status !== 'verified') return res.status(403).json({ message: 'Your account is not verified yet.' });
     const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : '';
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'requested' }, { $set: { status: 'rejected', rejectedAt: new Date(), rejectionReason: reason } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or already processed' });
+    await Worker.updateOne({ _id: req.user.id }, { $set: { isAvailable: true } });
     return res.status(200).json({ message: 'Booking rejected successfully', booking });
   } catch (error) { console.error('Reject booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -127,6 +150,7 @@ const cancelBooking = async (req, res) => {
 
 const getMyBookings = async (req, res) => {
   try {
+    await expireTimedOutBookings();
     const bookings = await Booking.find({ customer: req.user.id }).populate('worker', 'name phone skills rating isAvailable verification').sort({ createdAt: -1 }).limit(200);
     return res.status(200).json({ count: bookings.length, bookings });
   } catch (error) { console.error('Get my bookings error:', error); return res.status(500).json({ message: 'Server error' }); }
