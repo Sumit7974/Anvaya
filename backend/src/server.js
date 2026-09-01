@@ -16,6 +16,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const complaintRoutes = require('./routes/complaintRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/workers', workerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/complaints', complaintRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/payments', paymentRoutes);
