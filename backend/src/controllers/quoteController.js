@@ -4,9 +4,9 @@ const Worker = require('../models/Worker');
 const sendQuote = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { amount, note = '' } = req.body;
+    const { amount, note = '' } = req.body || {};
     const numericAmount = Number(amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return res.status(400).json({ message: 'A valid quote amount is required' });
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || numericAmount > 1000000) return res.status(400).json({ message: 'Quote amount must be between ₹1 and ₹10,00,000' });
 
     const worker = await Worker.findById(req.user.id);
     if (!worker || !worker.isActive || worker.verification.status !== 'verified') return res.status(403).json({ message: 'Worker is not eligible to quote' });
@@ -50,6 +50,7 @@ const rejectQuote = async (req, res) => {
     booking.rejectionReason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : 'Customer rejected the worker quote';
     booking.quote.customerRespondedAt = new Date();
     await booking.save();
+    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
     return res.status(200).json({ message: 'Quote rejected', booking });
   } catch (error) {
     console.error('Reject quote error:', error);
