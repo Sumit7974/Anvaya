@@ -1,0 +1,108 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { apiRequest, getStoredToken, getStoredUser } from './api/client';
+
+const icon = { electrician: '⚡', plumber: '🔧', carpenter: '🪚', painter: '🎨', mason: '🧱' };
+const label = (v) => v ? String(v).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Service';
+
+function WorkerDashboard({ onBack }) {
+  const [bookings, setBookings] = useState([]);
+  const [available, setAvailable] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState('');
+  const [quote, setQuote] = useState({});
+  const user = getStoredUser();
+
+  const load = useCallback(async (first = false) => {
+    try {
+      if (first) setLoading(true);
+      const token = getStoredToken();
+      const data = await apiRequest('/api/bookings/worker', { token });
+      setBookings(Array.isArray(data?.bookings) ? data.bookings : []);
+      setAvailable(Boolean(data?.worker?.isAvailable));
+      setError('');
+    } catch (e) { setError(e.message || 'Unable to load jobs.'); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    const first = window.setTimeout(() => void load(true), 0);
+    const timer = window.setInterval(() => void load(false), 5000);
+    return () => { window.clearTimeout(first); window.clearInterval(timer); };
+  }, [load]);
+
+  const counts = useMemo(() => ({
+    requested: bookings.filter(b => b.status === 'requested').length,
+    active: bookings.filter(b => ['accepted', 'quote-pending', 'in-progress', 'completion-pending'].includes(b.status)).length,
+    completed: bookings.filter(b => b.status === 'completed').length
+  }), [bookings]);
+
+  const action = async (id, name, body) => {
+    try {
+      setBusy(`${id}:${name}`); setError('');
+      const data = await apiRequest(`/api/bookings/${id}/${name}`, { method: 'PATCH', token: getStoredToken(), body });
+      setBookings(cur => cur.map(b => b._id === id ? data.booking : b));
+    } catch (e) { setError(e.message || 'Action failed.'); }
+    finally { setBusy(''); }
+  };
+
+  const sendQuote = async (booking) => {
+    const q = quote[booking._id] || {};
+    const amount = Number(q.amount);
+    if (!Number.isFinite(amount) || amount <= 0) { setError('Enter a valid quote amount.'); return; }
+    try {
+      setBusy(`${booking._id}:quote`); setError('');
+      const data = await apiRequest(`/api/quotes/${booking._id}/send`, {
+        method: 'PATCH', token: getStoredToken(), body: { amount, note: q.note || '' }
+      });
+      setBookings(cur => cur.map(b => b._id === booking._id ? data.booking : b));
+    } catch (e) { setError(e.message || 'Unable to send quote.'); }
+    finally { setBusy(''); }
+  };
+
+  const toggleAvailability = async () => {
+    try {
+      setBusy('availability');
+      const data = await apiRequest('/api/workers/availability', { method: 'PATCH', token: getStoredToken() });
+      setAvailable(Boolean(data?.isAvailable));
+    } catch (e) { setError(e.message || 'Unable to update availability.'); }
+    finally { setBusy(''); }
+  };
+
+  return <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
+    <header className="border-b border-amber-100 bg-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <div className="flex items-center gap-4"><img src="/anvaya-logo.png" alt="Anvaya" className="h-12 w-auto"/><div className="border-l border-slate-200 pl-4"><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Worker Dashboard</p><p className="text-sm font-semibold">Manage your Anvaya jobs</p></div></div>
+      <div className="flex gap-3"><button onClick={() => void toggleAvailability()} disabled={busy === 'availability'} className={`rounded-full px-4 py-2 text-sm font-bold ${available ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>● {available ? 'Available' : 'Unavailable'}</button><button onClick={onBack} className="rounded-xl border border-amber-200 bg-white px-4 py-2 font-semibold">← Back</button></div>
+    </div></header>
+
+    <section className="border-b border-amber-100 bg-[#FFF1E6]"><div className="mx-auto max-w-7xl px-5 py-9"><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Worker account 👋</p><h1 className="mt-2 text-3xl font-bold">Welcome, {user?.name || 'Worker'}</h1><p className="mt-2 text-slate-600">Read the customer's exact requirement, decide whether to accept it, then propose your price.</p></div></section>
+
+    <section className="mx-auto max-w-7xl px-5 pt-7"><div className="grid gap-4 sm:grid-cols-3"><div className="rounded-2xl border border-amber-100 bg-white p-5"><p className="text-sm text-slate-500">New requests</p><b className="text-3xl">{counts.requested}</b></div><div className="rounded-2xl border border-blue-100 bg-white p-5"><p className="text-sm text-slate-500">Active jobs</p><b className="text-3xl text-blue-600">{counts.active}</b></div><div className="rounded-2xl border border-emerald-100 bg-white p-5"><p className="text-sm text-slate-500">Completed jobs</p><b className="text-3xl text-emerald-600">{counts.completed}</b></div></div></section>
+
+    {error && <section className="mx-auto max-w-7xl px-5 pt-5"><div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-red-700"><b>Something went wrong</b><p className="text-sm">{error}</p></div></section>}
+
+    <section className="mx-auto max-w-7xl px-5 py-7"><div className="rounded-3xl border border-amber-100 bg-white shadow-lg"><div className="border-b border-amber-100 p-6"><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Live bookings</p><h2 className="text-2xl font-bold">Customer jobs</h2></div><div className="space-y-5 p-5">
+      {loading ? <p className="py-16 text-center">Loading bookings...</p> : bookings.length === 0 ? <p className="rounded-2xl bg-[#FFF8F3] py-16 text-center">No customer requests yet.</p> : bookings.map(b => {
+        const service = b.serviceTag || b.worker?.skills?.[0];
+        const q = quote[b._id] || {};
+        return <article key={b._id} className="rounded-2xl border border-slate-100 bg-[#FFFDF9] p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase text-amber-700">{icon[String(service || '').toLowerCase()] || '👷'} {label(service)}</p><h3 className="mt-1 text-xl font-bold">{b.customer?.name || 'Customer'}</h3></div><span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{label(b.status)}</span></div>
+          <div className="mt-4 rounded-2xl border border-amber-100 bg-white p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Customer requirement</p><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{b.problemDescription}</p></div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2"><div className="rounded-xl bg-white p-3"><span className="text-xs text-slate-400">Location</span><p className="font-semibold">📍 {b.location?.coordinates ? `${b.location.coordinates[1]}, ${b.location.coordinates[0]}` : 'Not provided'}</p></div><div className="rounded-xl bg-white p-3"><span className="text-xs text-slate-400">Customer contact</span><p className="font-semibold">{b.customer?.phone || 'Protected until accepted'}</p></div></div>
+
+          {b.status === 'requested' && <div className="mt-5 grid gap-3 sm:grid-cols-2"><button disabled={busy === `${b._id}:accept`} onClick={() => void action(b._id, 'accept')} className="rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white disabled:opacity-50">✓ Accept Request</button><button disabled={busy === `${b._id}:reject`} onClick={() => void action(b._id, 'reject', { reason: 'Worker declined this request' })} className="rounded-xl border border-red-200 bg-white px-5 py-3 font-bold text-red-600 disabled:opacity-50">✕ Reject</button></div>}
+
+          {b.status === 'accepted' && <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50 p-4"><p className="font-bold text-blue-900">Request accepted. Send your price to the customer.</p><div className="mt-3 grid gap-3 sm:grid-cols-[180px_1fr_auto]"><input type="number" min="1" value={q.amount || ''} onChange={e => setQuote(cur => ({...cur, [b._id]: {...q, amount: e.target.value}}))} placeholder="₹ Amount" className="rounded-xl border border-slate-200 px-4 py-3"/><input value={q.note || ''} onChange={e => setQuote(cur => ({...cur, [b._id]: {...q, note: e.target.value}}))} maxLength={500} placeholder="Price note / what's included" className="rounded-xl border border-slate-200 px-4 py-3"/><button disabled={busy === `${b._id}:quote`} onClick={() => void sendQuote(b)} className="rounded-xl bg-amber-600 px-5 py-3 font-bold text-white">Send Quote</button></div></div>}
+
+          {b.status === 'quote-pending' && <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4"><b>Quote sent:</b> ₹{b.quote?.amount} {b.quote?.note ? `— ${b.quote.note}` : ''}<p className="mt-1 text-sm text-slate-600">Waiting for the customer to accept or reject your price.</p></div>}
+          {b.status === 'customer-rejected' && <div className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-700">Customer rejected this quote. {b.rejectionReason || ''}</div>}
+          {b.status === 'accepted' && b.quote?.amount && <div className="mt-4 flex gap-3"><button disabled={busy === `${b._id}:start`} onClick={() => void action(b._id, 'start')} className="rounded-xl bg-blue-600 px-5 py-3 font-bold text-white">Start Work</button></div>}
+          {b.status === 'in-progress' && <button disabled={busy === `${b._id}:request-completion`} onClick={() => void action(b._id, 'request-completion')} className="mt-5 rounded-xl bg-amber-600 px-5 py-3 font-bold text-white">Request Customer Confirmation</button>}
+          {b.status === 'completion-pending' && <div className="mt-5 rounded-xl bg-purple-50 p-4 text-purple-800">Waiting for the customer to verify the completed work.</div>}
+          {b.status === 'completed' && <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-emerald-800">✓ Customer confirmed the work.</div>}
+        </article>;
+      })}
+    </div></div></section>
+  </main>;
+}
+export default WorkerDashboard;
