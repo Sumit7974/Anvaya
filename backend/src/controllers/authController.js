@@ -18,38 +18,25 @@ const registerUser = (role) => async (req, res) => {
   try {
     const Model = roleModels[role];
     if (!Model) return res.status(400).json({ message: 'Invalid registration role' });
-
-    const { name, email, phone, password, companyName, location, service, skills, verification } = req.body;
+    const { name, email, phone, password, companyName, location, service, skills } = req.body;
     const normalizedName = typeof name === 'string' ? name.trim() : '';
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
     const normalizedPhone = typeof phone === 'string' ? phone.trim() : '';
-
-    if (!normalizedName || !normalizedEmail || !password || (role !== 'admin' && !normalizedPhone)) {
-      return res.status(400).json({ message: 'Please fill all required fields' });
-    }
+    if (!normalizedName || !normalizedEmail || !password || (role !== 'admin' && !normalizedPhone)) return res.status(400).json({ message: 'Please fill all required fields' });
     if (password.length < 8) return res.status(400).json({ message: 'Password must be at least 8 characters long' });
 
-    const existing = role === 'admin'
-      ? await Model.findOne({ email: normalizedEmail })
-      : await Model.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
+    const existing = role === 'admin' ? await Model.findOne({ email: normalizedEmail }) : await Model.findOne({ $or: [{ email: normalizedEmail }, { phone: normalizedPhone }] });
     if (existing) return res.status(400).json({ message: 'Email or phone already registered' });
-
     const passwordHash = await bcrypt.hash(password, 10);
     const userData = { name: normalizedName, email: normalizedEmail, passwordHash };
-
     if (role !== 'admin') userData.phone = normalizedPhone;
 
     if (role === 'worker') {
-      const workerSkills = Array.isArray(skills)
-        ? skills.map((skill) => String(skill).trim().toLowerCase()).filter(Boolean).slice(0, 12)
-        : [];
+      const workerSkills = Array.isArray(skills) ? skills.map((skill) => String(skill).trim().toLowerCase()).filter(Boolean).slice(0, 12) : [];
       if (!workerSkills.length) return res.status(400).json({ message: 'Please add at least one skill' });
       userData.skills = workerSkills;
-      userData.verification = {
-        status: verification?.status === 'verified' ? 'verified' : 'pending',
-        provider: verification?.provider === 'digilocker' ? 'digilocker' : 'manual',
-        providerSubject: typeof verification?.providerSubject === 'string' ? verification.providerSubject : undefined
-      };
+      // Never trust verification claims from the browser. Verification must happen server-side.
+      userData.verification = { status: 'pending', provider: 'manual' };
     }
 
     if (role === 'contractor') {
