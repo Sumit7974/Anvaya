@@ -1,15 +1,16 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Anvaya API — trusted local-services marketplace backend",
+  "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "check": "node --check src/server.js && node --check src/controllers/authController.js && node --check src/controllers/bookingController.js && node --check src/controllers/paymentController.js && node --check src/controllers/workerController.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["anvaya", "local-services", "marketplace", "workers", "bookings"],
+  "author": "Anvaya Team",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
