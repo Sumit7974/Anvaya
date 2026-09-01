@@ -38,7 +38,7 @@ const bookingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['requested', 'quote-pending', 'accepted', 'in-progress', 'completion-pending', 'completed', 'disputed', 'rejected', 'customer-rejected', 'cancelled'],
+      enum: ['requested', 'quote-pending', 'accepted', 'in-progress', 'completion-pending', 'completed', 'disputed', 'rejected', 'customer-rejected', 'cancelled', 'expired'],
       default: 'requested',
       index: true
     },
@@ -57,10 +57,12 @@ const bookingSchema = new mongoose.Schema(
     },
     acceptedAt: Date,
     startedAt: Date,
+    responseDeadlineAt: Date,
     completionRequestedAt: Date,
     customerConfirmedAt: Date,
     disputedAt: Date,
     rejectedAt: Date,
+    expiredAt: Date,
     rejectionReason: { type: String, maxlength: 300, trim: true },
     completedAt: Date
   },
@@ -70,5 +72,6 @@ const bookingSchema = new mongoose.Schema(
 bookingSchema.index({ location: '2dsphere' });
 bookingSchema.index({ customer: 1, createdAt: -1 });
 bookingSchema.index({ worker: 1, status: 1, createdAt: -1 });
+bookingSchema.index({ status: 1, responseDeadlineAt: 1 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
