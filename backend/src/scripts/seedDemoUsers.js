@@ -10,7 +10,11 @@ const DEMO_PASSWORD = 'Demo@12345';
 
 async function upsertDemo(Model, query, data) {
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
-  return Model.findOneAndUpdate(query, { $set: { ...data, passwordHash, isActive: true } }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  return Model.findOneAndUpdate(
+    query,
+    { $set: { ...data, passwordHash, isActive: true } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 }
 
 async function main() {
@@ -18,18 +22,28 @@ async function main() {
   await mongoose.connect(process.env.MONGO_URI);
 
   await upsertDemo(Customer, { email: 'demo.customer@anvaya.test' }, {
-    name: 'Anvaya Demo Customer', email: 'demo.customer@anvaya.test', phone: '9000000001', address: 'Demo Town'
+    name: 'Anvaya Demo Customer',
+    email: 'demo.customer@anvaya.test',
+    phone: '9000000001',
+    address: 'Demo Town'
   });
 
   await upsertDemo(Worker, { email: 'demo.worker@anvaya.test' }, {
-    name: 'Ramesh Kumar', email: 'demo.worker@anvaya.test', phone: '9000000002',
-    skills: ['electrician', 'plumber'], isAvailable: true,
+    name: 'Ramesh Kumar',
+    email: 'demo.worker@anvaya.test',
+    phone: '9000000002',
+    skills: ['electrician', 'plumber'],
+    isAvailable: true,
     verification: { status: 'verified', provider: 'manual', documents: [] }
   });
 
   await upsertDemo(Contractor, { email: 'demo.contractor@anvaya.test' }, {
-    name: 'Anvaya Demo Contractor', email: 'demo.contractor@anvaya.test', phone: '9000000003',
-    companyName: 'Demo Works', location: 'Demo Town', primaryService: 'Home Services'
+    name: 'Anvaya Demo Contractor',
+    email: 'demo.contractor@anvaya.test',
+    phone: '9000000003',
+    companyName: 'Demo Works',
+    location: 'Demo Town',
+    primaryService: 'Home Services'
   });
 
   console.log('Demo users are ready.');
@@ -39,6 +53,10 @@ async function main() {
 
 main().catch(async (error) => {
   console.error('Demo seed failed:', error);
-  try { await mongoose.disconnect(); } catch (_) { /* ignore */ }
+  try {
+    await mongoose.disconnect();
+  } catch {
+    // Ignore disconnect errors while handling a seed failure.
+  }
   process.exit(1);
 });
