@@ -1,94 +1,172 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  apiRequest,
+  getStoredToken,
+} from "./api/client";
+
+const SERVICE_OPTIONS = [
+  "All",
+  "Electrician",
+  "Plumber",
+  "Carpenter",
+  "Painter",
+  "Mason",
+];
+
+const SERVICE_ICONS = {
+  electrician: "⚡",
+  plumber: "🔧",
+  carpenter: "🪚",
+  painter: "🎨",
+  mason: "🧱",
+};
+
+const normalizeSkill = (skill) =>
+  typeof skill === "string"
+    ? skill.trim().toLowerCase()
+    : "";
+
+const formatSkill = (skill) => {
+  if (!skill) {
+    return "Professional Worker";
+  }
+
+  return skill.charAt(0).toUpperCase() + skill.slice(1);
+};
+
+const getWorkerIcon = (worker) => {
+  const firstSkill = worker?.skills?.[0];
+
+  return (
+    SERVICE_ICONS[normalizeSkill(firstSkill)] ||
+    "👷"
+  );
+};
+
+const formatRating = (worker) => {
+  const average = Number(worker?.rating?.average);
+
+  return Number.isFinite(average) && average > 0
+    ? average.toFixed(1)
+    : "New";
+};
+
+const formatCompletedJobs = (worker) => {
+  const count = Number(worker?.rating?.count);
+
+  return Number.isFinite(count) && count > 0
+    ? `${count} reviews`
+    : "New worker";
+};
+
+const formatLocation = (worker) => {
+  const coordinates = worker?.location?.coordinates;
+
+  if (
+    Array.isArray(coordinates) &&
+    coordinates.length === 2 &&
+    coordinates.some((value) => Number(value) !== 0)
+  ) {
+    return `${Number(coordinates[1]).toFixed(4)}, ${Number(
+      coordinates[0]
+    ).toFixed(4)}`;
+  }
+
+  return "Location not set";
+};
 
 function CustomerBooking({ onBack, onSelectWorker }) {
   const [search, setSearch] = useState("");
   const [service, setService] = useState("All");
+  const [workers, setWorkers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const workers = [
-    {
-      id: 1,
-      name: "Rahul Verma",
-      skill: "Electrician",
-      experience: "6 years",
-      rating: "4.9",
-      jobs: "120+",
-      distance: "2.4 km",
-      icon: "⚡",
-      description:
-        "Experienced electrician for home wiring, repairs and installations.",
-    },
-    {
-      id: 2,
-      name: "Amit Sharma",
-      skill: "Plumber",
-      experience: "5 years",
-      rating: "4.8",
-      jobs: "95+",
-      distance: "3.1 km",
-      icon: "🔧",
-      description:
-        "Reliable plumber for leakage, pipe fitting and bathroom work.",
-    },
-    {
-      id: 3,
-      name: "Vikas Patel",
-      skill: "Carpenter",
-      experience: "8 years",
-      rating: "4.9",
-      jobs: "150+",
-      distance: "4.2 km",
-      icon: "🪚",
-      description:
-        "Skilled carpenter for furniture, doors and woodwork.",
-    },
-    {
-      id: 4,
-      name: "Rohit Singh",
-      skill: "Painter",
-      experience: "4 years",
-      rating: "4.7",
-      jobs: "80+",
-      distance: "5.0 km",
-      icon: "🎨",
-      description:
-        "Professional painter for interior and exterior painting.",
-    },
-    {
-      id: 5,
-      name: "Suresh Yadav",
-      skill: "Mason",
-      experience: "7 years",
-      rating: "4.8",
-      jobs: "110+",
-      distance: "5.8 km",
-      icon: "🧱",
-      description:
-        "Experienced mason for construction and repair work.",
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
 
-  const services = [
-    "All",
-    "Electrician",
-    "Plumber",
-    "Carpenter",
-    "Painter",
-    "Mason",
-  ];
+    const loadWorkers = async () => {
+      setLoading(true);
+      setError("");
 
-  const filteredWorkers = workers.filter((worker) => {
-    const matchesService =
-      service === "All" || worker.skill === service;
+      try {
+        const token = getStoredToken();
 
-    const searchText = search.toLowerCase();
+        if (!token) {
+          throw new Error(
+            "Your session has expired. Please log in again."
+          );
+        }
 
-    const matchesSearch =
-      worker.name.toLowerCase().includes(searchText) ||
-      worker.skill.toLowerCase().includes(searchText);
+        const data = await apiRequest(
+          "/api/workers?isAvailable=true",
+          {
+            method: "GET",
+            token,
+          }
+        );
 
-    return matchesService && matchesSearch;
-  });
+        if (!mounted) {
+          return;
+        }
+
+        setWorkers(
+          Array.isArray(data?.workers)
+            ? data.workers
+            : []
+        );
+      } catch (requestError) {
+        if (!mounted) {
+          return;
+        }
+
+        setError(
+          requestError.message ||
+            "Unable to load workers right now."
+        );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadWorkers();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const filteredWorkers = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return workers.filter((worker) => {
+      const skills = Array.isArray(worker.skills)
+        ? worker.skills
+        : [];
+
+      const matchesService =
+        service === "All" ||
+        skills.some(
+          (skill) =>
+            normalizeSkill(skill) ===
+            normalizeSkill(service)
+        );
+
+      const matchesSearch =
+        !query ||
+        worker.name?.toLowerCase().includes(query) ||
+        skills.some((skill) =>
+          String(skill).toLowerCase().includes(query)
+        ) ||
+        worker.email?.toLowerCase().includes(query);
+
+      return matchesService && matchesSearch;
+    });
+  }, [workers, search, service]);
 
   const handleSelectWorker = (worker) => {
     setSelectedWorker(worker);
@@ -104,13 +182,9 @@ function CustomerBooking({ onBack, onSelectWorker }) {
 
   return (
     <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
-
-      {/* HEADER */}
       <header className="border-b border-amber-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-
           <div className="flex items-center gap-4">
-
             <img
               src="/anvaya-logo.png"
               alt="Anvaya"
@@ -118,7 +192,6 @@ function CustomerBooking({ onBack, onSelectWorker }) {
             />
 
             <div className="hidden border-l border-slate-200 pl-4 sm:block">
-
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-700">
                 Customer
               </p>
@@ -126,9 +199,7 @@ function CustomerBooking({ onBack, onSelectWorker }) {
               <p className="text-sm font-semibold text-slate-700">
                 Find & book trusted workers
               </p>
-
             </div>
-
           </div>
 
           <button
@@ -138,18 +209,12 @@ function CustomerBooking({ onBack, onSelectWorker }) {
           >
             ← Back
           </button>
-
         </div>
       </header>
 
-
-      {/* HERO */}
       <section className="relative overflow-hidden bg-[#FFF1E6]">
-
         <div className="mx-auto max-w-7xl px-6 py-14 sm:py-16">
-
           <div className="max-w-3xl">
-
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-700 shadow-sm">
               <span>📍</span>
               Trusted professionals near you
@@ -168,9 +233,7 @@ function CustomerBooking({ onBack, onSelectWorker }) {
               for your work.
             </p>
 
-            {/* SEARCH */}
             <div className="mt-7 flex max-w-2xl items-center rounded-2xl border border-amber-100 bg-white p-2 shadow-lg">
-
               <span className="px-3 text-xl">
                 🔍
               </span>
@@ -182,19 +245,12 @@ function CustomerBooking({ onBack, onSelectWorker }) {
                 placeholder="Search electrician, plumber, carpenter..."
                 className="w-full bg-transparent px-2 py-3 text-sm text-slate-800 outline-none placeholder:text-slate-400"
               />
-
             </div>
-
           </div>
-
         </div>
-
       </section>
 
-
-      {/* SERVICES */}
       <section className="mx-auto max-w-7xl px-6 pt-10">
-
         <p className="text-sm font-bold uppercase tracking-wider text-amber-700">
           Explore services
         </p>
@@ -204,9 +260,7 @@ function CustomerBooking({ onBack, onSelectWorker }) {
         </h2>
 
         <div className="mt-5 flex gap-3 overflow-x-auto pb-3">
-
-          {services.map((item) => (
-
+          {SERVICE_OPTIONS.map((item) => (
             <button
               type="button"
               key={item}
@@ -219,21 +273,13 @@ function CustomerBooking({ onBack, onSelectWorker }) {
             >
               {item}
             </button>
-
           ))}
-
         </div>
-
       </section>
 
-
-      {/* WORKERS */}
       <section className="mx-auto max-w-7xl px-6 py-10">
-
         <div className="mb-7 flex items-end justify-between">
-
           <div>
-
             <p className="text-sm font-bold uppercase tracking-wider text-amber-700">
               Available now
             </p>
@@ -243,109 +289,138 @@ function CustomerBooking({ onBack, onSelectWorker }) {
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              Select a worker to continue with your service.
+              Select a verified worker to continue with your service.
             </p>
-
           </div>
 
           <span className="hidden rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 sm:block">
-            {filteredWorkers.length} available
+            {loading ? "Loading..." : `${filteredWorkers.length} available`}
           </span>
-
         </div>
 
+        {loading ? (
+          <div className="rounded-3xl border border-amber-100 bg-white px-6 py-20 text-center shadow-md">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-amber-100 border-t-amber-600" />
 
-        {filteredWorkers.length > 0 ? (
+            <h3 className="mt-6 text-xl font-bold text-slate-900">
+              Finding verified workers
+            </h3>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-
-            {filteredWorkers.map((worker) => (
-
-              <div
-                key={worker.id}
-                className="group rounded-3xl border border-amber-100 bg-white p-6 shadow-md transition duration-300 hover:-translate-y-2 hover:border-amber-300 hover:shadow-2xl"
-              >
-
-                <div className="flex items-start justify-between">
-
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF1E6] text-3xl transition duration-300 group-hover:scale-110">
-                    {worker.icon}
-                  </div>
-
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                    ● Available
-                  </span>
-
-                </div>
-
-                <h3 className="mt-6 text-xl font-bold text-slate-900">
-                  {worker.name}
-                </h3>
-
-                <p className="mt-1 font-semibold text-amber-700">
-                  {worker.skill}
-                </p>
-
-                <p className="mt-3 min-h-[48px] text-sm leading-6 text-slate-500">
-                  {worker.description}
-                </p>
-
-                <div className="mt-5 space-y-3">
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">
-                      Experience
-                    </span>
-
-                    <span className="font-semibold text-slate-700">
-                      {worker.experience}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">
-                      Rating
-                    </span>
-
-                    <span className="font-semibold text-slate-700">
-                      ⭐ {worker.rating}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">
-                      Completed
-                    </span>
-
-                    <span className="font-semibold text-slate-700">
-                      {worker.jobs}
-                    </span>
-                  </div>
-
-                </div>
-
-                <div className="mt-5 rounded-xl bg-[#FFF8F3] px-3 py-2 text-sm font-medium text-slate-600">
-                  📍 {worker.distance} away
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectWorker(worker)}
-                  className="mt-5 w-full rounded-xl bg-amber-600 px-4 py-3.5 font-bold text-white shadow-md transition duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-lg active:translate-y-0"
-                >
-                  Select Worker →
-                </button>
-
-              </div>
-
-            ))}
-
+            <p className="mt-2 text-sm text-slate-500">
+              Loading the latest availability from Anvaya.
+            </p>
           </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-red-100 bg-white px-6 py-16 text-center shadow-md">
+            <div className="text-5xl">
+              ⚠️
+            </div>
 
+            <h3 className="mt-5 text-xl font-bold text-slate-900">
+              Unable to load workers
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-500">
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 rounded-xl bg-amber-600 px-5 py-3 font-bold text-white transition hover:bg-amber-700"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : filteredWorkers.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {filteredWorkers.map((worker) => {
+              const primarySkill =
+                Array.isArray(worker.skills) &&
+                worker.skills.length > 0
+                  ? worker.skills[0]
+                  : "";
+
+              return (
+                <div
+                  key={worker._id}
+                  className="group rounded-3xl border border-amber-100 bg-white p-6 shadow-md transition duration-300 hover:-translate-y-2 hover:border-amber-300 hover:shadow-2xl"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF1E6] text-3xl transition duration-300 group-hover:scale-110">
+                      {getWorkerIcon(worker)}
+                    </div>
+
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                      ● Available
+                    </span>
+                  </div>
+
+                  <h3 className="mt-6 text-xl font-bold text-slate-900">
+                    {worker.name}
+                  </h3>
+
+                  <p className="mt-1 font-semibold text-amber-700">
+                    {formatSkill(primarySkill)}
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Array.isArray(worker.skills) &&
+                      worker.skills.slice(0, 3).map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600"
+                        >
+                          {formatSkill(skill)}
+                        </span>
+                      ))}
+                  </div>
+
+                  <div className="mt-5 space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">
+                        Rating
+                      </span>
+
+                      <span className="font-semibold text-slate-700">
+                        ⭐ {formatRating(worker)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-500">
+                        Reviews
+                      </span>
+
+                      <span className="font-semibold text-slate-700">
+                        {formatCompletedJobs(worker)}
+                      </span>
+                    </div>
+
+                    <div className="text-sm">
+                      <span className="text-slate-500">
+                        Location
+                      </span>
+
+                      <p className="mt-1 font-semibold text-slate-700">
+                        📍 {formatLocation(worker)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectWorker(worker)}
+                    className="mt-5 w-full rounded-xl bg-amber-600 px-4 py-3.5 font-bold text-white shadow-md transition duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-lg active:translate-y-0"
+                  >
+                    Select Worker →
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-
           <div className="rounded-3xl border border-amber-100 bg-white px-6 py-16 text-center shadow-md">
-
             <div className="text-5xl">
               🔎
             </div>
@@ -355,7 +430,7 @@ function CustomerBooking({ onBack, onSelectWorker }) {
             </h3>
 
             <p className="mt-2 text-sm text-slate-500">
-              Try another service or search for a different worker.
+              Try another service or wait for a verified worker to become available.
             </p>
 
             <button
@@ -368,23 +443,14 @@ function CustomerBooking({ onBack, onSelectWorker }) {
             >
               Reset Search
             </button>
-
           </div>
-
         )}
-
       </section>
 
-
-      {/* INFO */}
       <section className="mx-auto max-w-7xl px-6 pb-12">
-
         <div className="rounded-3xl border border-amber-100 bg-white p-6 shadow-sm sm:p-8">
-
           <div className="grid gap-6 sm:grid-cols-3">
-
             <div className="flex gap-4">
-
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl">
                 ✓
               </div>
@@ -395,15 +461,12 @@ function CustomerBooking({ onBack, onSelectWorker }) {
                 </h3>
 
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Choose workers based on their experience and ratings.
+                  Only active, admin-verified workers are shown.
                 </p>
               </div>
-
             </div>
 
-
             <div className="flex gap-4">
-
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-xl">
                 ⭐
               </div>
@@ -414,63 +477,44 @@ function CustomerBooking({ onBack, onSelectWorker }) {
                 </h3>
 
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Compare previous work and customer ratings.
+                  Compare real worker ratings stored in Anvaya.
                 </p>
               </div>
-
             </div>
 
-
             <div className="flex gap-4">
-
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-xl">
                 📍
               </div>
 
               <div>
                 <h3 className="font-bold text-slate-900">
-                  Nearby workers
+                  Live availability
                 </h3>
 
                 <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Find professionals available close to you.
+                  See workers who are currently available for jobs.
                 </p>
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </section>
 
-
-      {/* FOOTER */}
       <footer className="border-t border-amber-100 bg-white">
-
         <div className="mx-auto max-w-7xl px-6 py-8 text-center">
-
           <p className="text-sm text-slate-400">
             Trusted workers. Better connections. Stronger communities.
           </p>
-
         </div>
-
       </footer>
 
-
-      {/* CONFIRMATION POPUP */}
       {selectedWorker && (
-
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-5 backdrop-blur-sm">
-
           <div className="w-full max-w-md rounded-3xl border border-amber-100 bg-white p-7 shadow-2xl">
-
             <div className="text-center">
-
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#FFF1E6] text-3xl">
-                {selectedWorker.icon}
+                {getWorkerIcon(selectedWorker)}
               </div>
 
               <p className="mt-5 text-xs font-bold uppercase tracking-[0.15em] text-amber-700">
@@ -482,46 +526,36 @@ function CustomerBooking({ onBack, onSelectWorker }) {
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                You are about to request this worker for your service.
+                You are about to request this verified worker for your service.
                 Do you want to continue?
               </p>
-
             </div>
 
-
             <div className="mt-6 rounded-2xl bg-[#FFF8F3] p-4">
-
               <div className="flex items-center justify-between">
-
                 <div>
                   <p className="font-bold text-slate-900">
                     {selectedWorker.name}
                   </p>
 
                   <p className="mt-1 text-sm font-semibold text-amber-700">
-                    {selectedWorker.skill}
+                    {formatSkill(selectedWorker.skills?.[0])}
                   </p>
                 </div>
 
                 <div className="text-right">
-
                   <p className="text-sm font-bold text-slate-700">
-                    ⭐ {selectedWorker.rating}
+                    ⭐ {formatRating(selectedWorker)}
                   </p>
 
                   <p className="mt-1 text-xs text-slate-500">
-                    {selectedWorker.distance}
+                    Available now
                   </p>
-
                 </div>
-
               </div>
-
             </div>
 
-
             <div className="mt-6 grid grid-cols-2 gap-3">
-
               <button
                 type="button"
                 onClick={() => setSelectedWorker(null)}
@@ -537,15 +571,10 @@ function CustomerBooking({ onBack, onSelectWorker }) {
               >
                 Yes, Select →
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </main>
   );
 }

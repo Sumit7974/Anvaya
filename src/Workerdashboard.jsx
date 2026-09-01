@@ -1,63 +1,455 @@
-import { useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState
+} from "react";
 
-function WorkerDashboard({ onBack }) {
-  const [jobStatus, setJobStatus] = useState("new");
-  const [showDetails, setShowDetails] = useState(false);
+import {
+  apiRequest,
+  getStoredToken,
+  getStoredUser
+} from "./api/client";
 
-  const job = {
-    id: "ANV-1042",
-    customer: "Priya Sharma",
-    service: "Ceiling Fan Installation",
-    location: "City Centre, Gwalior",
-    distance: "2.4 km away",
-    payment: "₹650",
-    requested: "10 minutes ago",
-    phone: "+91 98XXXXXX42",
-    description:
-      "Need installation of two ceiling fans. Electrical points are already available.",
-  };
+const STATUS_LABELS = {
+  requested: "New Request",
+  accepted: "Accepted",
+  "in-progress": "Work Started",
+  "completion-pending":
+    "Waiting for Customer Confirmation",
+  completed: "Completed",
+  disputed: "Disputed",
+  rejected: "Rejected",
+  cancelled: "Cancelled"
+};
 
-  const statusSteps = [
-    { key: "new", label: "New Request", icon: "🔔" },
-    { key: "accepted", label: "Accepted", icon: "✓" },
-    { key: "started", label: "Work Started", icon: "🔧" },
-    { key: "completed", label: "Completed", icon: "🎉" },
-  ];
+const SERVICE_ICONS = {
+  electrician: "⚡",
+  plumber: "🔧",
+  carpenter: "🪚",
+  painter: "🎨",
+  mason: "🧱"
+};
 
-  const currentIndex = statusSteps.findIndex(
-    (step) => step.key === jobStatus
+const formatService = (service) => {
+  if (!service) {
+    return "General Service";
+  }
+
+  const value = String(service);
+
+  return (
+    value.charAt(0).toUpperCase() +
+    value.slice(1)
   );
+};
 
-  const handleAccept = () => {
-    setJobStatus("accepted");
-  };
+const getServiceIcon = (service) => {
+  return (
+    SERVICE_ICONS[
+      String(
+        service || ""
+      ).toLowerCase()
+    ] || "👷"
+  );
+};
 
-  const handleStart = () => {
-    setJobStatus("started");
-  };
+const formatDate = (value) => {
+  if (!value) {
+    return "Recently";
+  }
 
-  const handleComplete = () => {
-    setJobStatus("completed");
-  };
+  const date = new Date(value);
 
-  const getStatusText = () => {
-    if (jobStatus === "new") return "New job request";
-    if (jobStatus === "accepted") return "Job accepted";
-    if (jobStatus === "started") return "Work in progress";
-    return "Job completed";
-  };
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "Recently";
+  }
+
+  return date.toLocaleString();
+};
+
+const formatLocation = (
+  location
+) => {
+  const coordinates =
+    location?.coordinates;
+
+  if (
+    !Array.isArray(
+      coordinates
+    ) ||
+    coordinates.length !== 2
+  ) {
+    return "Location not provided";
+  }
+
+  const longitude =
+    Number(coordinates[0]);
+
+  const latitude =
+    Number(coordinates[1]);
+
+  if (
+    !Number.isFinite(
+      longitude
+    ) ||
+    !Number.isFinite(
+      latitude
+    )
+  ) {
+    return "Location not provided";
+  }
+
+  return `${latitude.toFixed(
+    4
+  )}, ${longitude.toFixed(4)}`;
+};
+
+function WorkerDashboard({
+  onBack
+}) {
+  const [bookings, setBookings] =
+    useState([]);
+
+  const [available, setAvailable] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [actionId, setActionId] =
+    useState("");
+
+  const worker =
+    getStoredUser();
+
+  const loadBookings =
+    useCallback(
+      async (
+        showLoader = false
+      ) => {
+        try {
+          if (showLoader) {
+            setLoading(true);
+          }
+
+          setError("");
+
+          const token =
+            getStoredToken();
+
+          if (!token) {
+            throw new Error(
+              "Your session has expired. Please log in again."
+            );
+          }
+
+          const data =
+            await apiRequest(
+              "/api/bookings/worker",
+              {
+                method: "GET",
+                token
+              }
+            );
+
+          setBookings(
+            Array.isArray(
+              data?.bookings
+            )
+              ? data.bookings
+              : []
+          );
+
+          if (
+            typeof data?.worker
+              ?.isAvailable ===
+            "boolean"
+          ) {
+            setAvailable(
+              data.worker.isAvailable
+            );
+          }
+        } catch (
+          requestError
+        ) {
+          console.error(
+            "Load worker bookings error:",
+            requestError
+          );
+
+          setError(
+            requestError?.message ||
+              "Unable to load your bookings."
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
+    );
+
+  useEffect(() => {
+    const timer =
+      window.setTimeout(() => {
+        void loadBookings(true);
+      }, 0);
+
+    const refresh =
+      window.setInterval(() => {
+        void loadBookings(false);
+      }, 5000);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(refresh);
+    };
+  }, [loadBookings]);
+
+  const requestedCount =
+    useMemo(
+      () =>
+        bookings.filter(
+          (booking) =>
+            booking.status ===
+            "requested"
+        ).length,
+      [bookings]
+    );
+
+  const activeCount =
+    useMemo(
+      () =>
+        bookings.filter(
+          (booking) =>
+            booking.status ===
+              "accepted" ||
+            booking.status ===
+              "in-progress" ||
+            booking.status ===
+              "completion-pending"
+        ).length,
+      [bookings]
+    );
+
+  const completedCount =
+    useMemo(
+      () =>
+        bookings.filter(
+          (booking) =>
+            booking.status ===
+            "completed"
+        ).length,
+      [bookings]
+    );
+
+  
+
+  const performBookingAction =
+    async (
+      bookingId,
+      action
+    ) => {
+      try {
+        setActionId(
+          `${bookingId}:${action}`
+        );
+
+        setError("");
+
+        const token =
+          getStoredToken();
+
+        if (!token) {
+          throw new Error(
+            "Your session has expired. Please log in again."
+          );
+        }
+
+        let body;
+
+        if (
+          action === "reject"
+        ) {
+          const reason =
+            window.prompt(
+              "Optional: Why are you rejecting this job?"
+            );
+
+          body = {
+            reason:
+              reason || ""
+          };
+        }
+
+        const data =
+          await apiRequest(
+            `/api/bookings/${bookingId}/${action}`,
+            {
+              method: "PATCH",
+              token,
+              body
+            }
+          );
+
+        if (
+          data?.booking?._id
+        ) {
+          setBookings(
+            (
+              current
+            ) =>
+              current.map(
+                (booking) =>
+                  booking._id ===
+                  data.booking
+                    ._id
+                    ? data.booking
+                    : booking
+              )
+          );
+        } else {
+          await loadBookings(
+            false
+          );
+        }
+      } catch (
+        requestError
+      ) {
+        console.error(
+          `Booking ${action} error:`,
+          requestError
+        );
+
+        setError(
+          requestError?.message ||
+            `Unable to ${action} booking.`
+        );
+      } finally {
+        setActionId("");
+      }
+    };
+
+  const toggleAvailability =
+    async () => {
+      try {
+        setActionId(
+          "availability"
+        );
+
+        setError("");
+
+        const token =
+          getStoredToken();
+
+        if (!token) {
+          throw new Error(
+            "Your session has expired. Please log in again."
+          );
+        }
+
+        const data =
+          await apiRequest(
+            "/api/workers/availability",
+            {
+              method: "PATCH",
+              token
+            }
+          );
+
+        if (
+          typeof data?.isAvailable ===
+          "boolean"
+        ) {
+          setAvailable(
+            data.isAvailable
+          );
+        }
+      } catch (
+        requestError
+      ) {
+        console.error(
+          "Availability update error:",
+          requestError
+        );
+
+        setError(
+          requestError?.message ||
+            "Unable to update availability."
+        );
+      } finally {
+        setActionId("");
+      }
+    };
+
+  const getActions =
+    (booking) => {
+      if (
+        booking.status ===
+        "requested"
+      ) {
+        return {
+          primary: {
+            label: "Accept Job",
+            action: "accept",
+            className:
+              "bg-emerald-600 hover:bg-emerald-700"
+          },
+
+          secondary: {
+            label: "Reject",
+            action: "reject",
+            className:
+              "border border-red-200 bg-white text-red-600 hover:bg-red-50"
+          }
+        };
+      }
+
+      if (
+        booking.status ===
+        "accepted"
+      ) {
+        return {
+          primary: {
+            label: "Start Work",
+            action: "start",
+            className:
+              "bg-blue-600 hover:bg-blue-700"
+          }
+        };
+      }
+
+      if (
+        booking.status ===
+        "in-progress"
+      ) {
+        return {
+          primary: {
+            label:
+              "Request Completion",
+            action:
+              "request-completion",
+            className:
+              "bg-amber-600 hover:bg-amber-700"
+          }
+        };
+      }
+
+      return null;
+    };
 
   return (
     <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
-
-      {/* HEADER */}
-
       <header className="border-b border-amber-100 bg-white shadow-sm">
-
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-
           <div className="flex items-center gap-4">
-
             <img
               src="/anvaya-logo.png"
               alt="Anvaya"
@@ -65,538 +457,385 @@ function WorkerDashboard({ onBack }) {
             />
 
             <div className="hidden border-l border-slate-200 pl-4 sm:block">
-
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
                 Worker Dashboard
               </p>
 
               <p className="text-sm font-semibold text-slate-700">
-                Manage your work with Anvaya
+                Manage your Anvaya jobs
               </p>
-
             </div>
-
           </div>
 
           <div className="flex items-center gap-3">
-
-            <div className="hidden rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700 sm:block">
-              ● Available for work
-            </div>
-
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-x-1 hover:border-amber-300 hover:text-amber-700 hover:shadow-md"
+              type="button"
+              onClick={() => {
+                void toggleAvailability();
+              }}
+              disabled={
+                actionId ===
+                "availability"
+              }
+              className={`rounded-full px-4 py-2 text-sm font-bold ${
+                available
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-slate-100 text-slate-600"
+              } disabled:opacity-60`}
             >
-              <span>←</span>
-              <span>Back</span>
+              ●{" "}
+              {available
+                ? "Available"
+                : "Unavailable"}
             </button>
 
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:border-amber-300 hover:text-amber-700"
+            >
+              ← Back
+            </button>
           </div>
-
         </div>
-
       </header>
 
-
-      {/* HERO */}
-
       <section className="border-b border-amber-100 bg-[#FFF1E6]">
+        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+          <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-700">
+            Worker account 👋
+          </p>
 
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
+          <h1 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">
+            {worker?.name
+              ? `Welcome, ${worker.name}`
+              : "Your work dashboard"}
+          </h1>
 
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-
-            <div>
-
-              <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-700">
-                Good to see you 👋
-              </p>
-
-              <h1 className="mt-2 text-3xl font-bold text-slate-900 sm:text-4xl">
-                Your work dashboard
-              </h1>
-
-              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                View new work requests, manage active jobs and keep track of
-                your completed work.
-              </p>
-
-            </div>
-
-            <div className="rounded-2xl border border-emerald-100 bg-white px-6 py-5 shadow-md">
-
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Today's status
-              </p>
-
-              <div className="mt-2 flex items-center gap-2">
-
-                <span className="h-3 w-3 rounded-full bg-emerald-500" />
-
-                <span className="font-bold text-emerald-700">
-                  {getStatusText()}
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
+          <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+            Review every customer request before accepting the work.
+          </p>
         </div>
-
       </section>
 
-
-      {/* STATS */}
-
       <section className="mx-auto max-w-7xl px-5 pt-8 sm:px-8">
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-          <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
-            <p className="text-sm font-medium text-slate-500">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">
               New requests
             </p>
 
             <p className="mt-2 text-3xl font-bold text-slate-900">
-              {jobStatus === "new" ? "1" : "0"}
+              {requestedCount}
             </p>
-
           </div>
 
-          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
-            <p className="text-sm font-medium text-slate-500">
+          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">
               Active jobs
             </p>
 
             <p className="mt-2 text-3xl font-bold text-blue-600">
-              {jobStatus === "started" ? "1" : "0"}
+              {activeCount}
             </p>
-
           </div>
 
-          <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
-            <p className="text-sm font-medium text-slate-500">
-              Completed today
+          <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">
+              Completed jobs
             </p>
 
             <p className="mt-2 text-3xl font-bold text-emerald-600">
-              {jobStatus === "completed" ? "1" : "0"}
+              {completedCount}
             </p>
-
           </div>
-
-          <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-
-            <p className="text-sm font-medium text-slate-500">
-              Today's earnings
-            </p>
-
-            <p className="mt-2 text-3xl font-bold text-orange-600">
-              {jobStatus === "completed" ? job.payment : "₹0"}
-            </p>
-
-          </div>
-
         </div>
-
       </section>
 
+      {error && (
+        <section className="mx-auto max-w-7xl px-5 pt-6 sm:px-8">
+          <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
+            <p className="font-bold text-red-700">
+              Something went wrong
+            </p>
 
-      {/* MAIN DASHBOARD */}
+            <p className="mt-1 text-sm text-red-600">
+              {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                void loadBookings(
+                  true
+                );
+              }}
+              className="mt-4 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+        <section className="rounded-3xl border border-amber-100 bg-white shadow-lg">
+          <div className="border-b border-amber-100 bg-[#FFFDF9] px-6 py-6 sm:px-8">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
+              Live bookings
+            </p>
 
-        <div className="grid gap-7 lg:grid-cols-[1.4fr_0.8fr]">
+            <h2 className="mt-2 text-2xl font-bold text-slate-900">
+              Customer jobs
+            </h2>
+          </div>
 
+          <div className="p-6 sm:p-8">
+            {loading ? (
+              <div className="py-16 text-center">
+                <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-amber-100 border-t-amber-600" />
 
-          {/* JOB REQUEST */}
-
-          <section className="overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-lg">
-
-            <div className="border-b border-amber-100 bg-[#FFFDF9] px-6 py-6 sm:px-8">
-
-              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
-                <div>
-
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
-                    Current job
-                  </p>
-
-                  <h2 className="mt-2 text-2xl font-bold text-slate-900">
-                    {job.service}
-                  </h2>
-
-                </div>
-
-                <span
-                  className={`w-fit rounded-full px-4 py-2 text-xs font-bold ${
-                    jobStatus === "completed"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : jobStatus === "started"
-                      ? "bg-blue-50 text-blue-700"
-                      : jobStatus === "accepted"
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-orange-50 text-orange-700"
-                  }`}
-                >
-                  ● {getStatusText()}
-                </span>
-
-              </div>
-
-            </div>
-
-
-            <div className="p-6 sm:p-8">
-
-              {/* CUSTOMER */}
-
-              <div className="flex items-center gap-4">
-
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-2xl">
-                  👩
-                </div>
-
-                <div>
-
-                  <p className="text-sm text-slate-500">
-                    Customer
-                  </p>
-
-                  <h3 className="font-bold text-slate-900">
-                    {job.customer}
-                  </h3>
-
-                </div>
-
-              </div>
-
-
-              {/* JOB DETAILS */}
-
-              <div className="mt-7 grid gap-4 sm:grid-cols-2">
-
-                <div className="rounded-2xl bg-[#FFF8F3] p-4">
-
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Location
-                  </p>
-
-                  <p className="mt-2 font-semibold text-slate-800">
-                    📍 {job.location}
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    {job.distance}
-                  </p>
-
-                </div>
-
-                <div className="rounded-2xl bg-[#FFF8F3] p-4">
-
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    Payment
-                  </p>
-
-                  <p className="mt-2 text-xl font-bold text-emerald-600">
-                    {job.payment}
-                  </p>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    Agreed service amount
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              {/* DESCRIPTION */}
-
-              <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-5">
-
-                <p className="text-sm font-bold text-slate-700">
-                  Customer requirement
+                <p className="mt-4 text-sm font-semibold text-slate-600">
+                  Loading bookings...
                 </p>
-
-                <p className="mt-2 text-sm leading-6 text-slate-500">
-                  {job.description}
-                </p>
-
               </div>
-
-
-              {/* MORE DETAILS */}
-
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="mt-5 text-sm font-bold text-amber-700 transition hover:text-amber-800"
-              >
-                {showDetails ? "Hide details ↑" : "View customer details ↓"}
-              </button>
-
-
-              {showDetails && (
-
-                <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50/50 p-5">
-
-                  <p className="text-sm text-slate-500">
-                    Customer phone
-                  </p>
-
-                  <p className="mt-1 font-bold text-slate-800">
-                    📞 {job.phone}
-                  </p>
-
-                  <p className="mt-4 text-sm text-slate-500">
-                    Request received
-                  </p>
-
-                  <p className="mt-1 font-bold text-slate-800">
-                    {job.requested}
-                  </p>
-
+            ) : bookings.length ===
+              0 ? (
+              <div className="rounded-2xl bg-[#FFF8F3] px-6 py-14 text-center">
+                <div className="text-5xl">
+                  📭
                 </div>
 
-              )}
+                <h3 className="mt-4 text-xl font-bold text-slate-900">
+                  No bookings yet
+                </h3>
 
-
-              {/* ACTIONS */}
-
-              <div className="mt-7">
-
-                {jobStatus === "new" && (
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-
-                    <button
-                      onClick={handleAccept}
-                      className="rounded-xl bg-emerald-600 px-5 py-4 font-bold text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-emerald-700 hover:shadow-xl"
-                    >
-                      ✓ Accept Job
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        alert("This demo does not reject the request.")
-                      }
-                      className="rounded-xl border border-slate-200 bg-white px-5 py-4 font-bold text-slate-600 transition duration-300 hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    >
-                      Decline
-                    </button>
-
-                  </div>
-
-                )}
-
-
-                {jobStatus === "accepted" && (
-
-                  <button
-                    onClick={handleStart}
-                    className="w-full rounded-xl bg-blue-600 px-5 py-4 font-bold text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-blue-700 hover:shadow-xl"
-                  >
-                    🔧 Start Work
-                  </button>
-
-                )}
-
-
-                {jobStatus === "started" && (
-
-                  <button
-                    onClick={handleComplete}
-                    className="w-full rounded-xl bg-emerald-600 px-5 py-4 font-bold text-white shadow-lg transition duration-300 hover:-translate-y-1 hover:bg-emerald-700 hover:shadow-xl"
-                  >
-                    ✓ Mark Work as Completed
-                  </button>
-
-                )}
-
-
-                {jobStatus === "completed" && (
-
-                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 text-center">
-
-                    <div className="text-4xl">
-                      🎉
-                    </div>
-
-                    <h3 className="mt-3 text-xl font-bold text-emerald-800">
-                      Job completed successfully!
-                    </h3>
-
-                    <p className="mt-2 text-sm text-emerald-700">
-                      ₹650 has been added to today's earnings.
-                    </p>
-
-                  </div>
-
-                )}
-
+                <p className="mt-2 text-sm text-slate-500">
+                  New customer requests will appear here.
+                </p>
               </div>
+            ) : (
+              <div className="space-y-5">
+                {bookings.map(
+                  (booking) => {
+                    const actions =
+                      getActions(
+                        booking
+                      );
 
-            </div>
+                    const acceptBusy =
+                      actionId ===
+                      `${booking._id}:accept`;
 
-          </section>
+                    const rejectBusy =
+                      actionId ===
+                      `${booking._id}:reject`;
 
+                    const primaryBusy =
+                      booking.status ===
+                        "requested"
+                        ? acceptBusy
+                        : actionId ===
+                          `${booking._id}:${actions?.primary?.action}`;
 
-          {/* RIGHT SIDE */}
+                    return (
+                      <article
+                        key={
+                          booking._id
+                        }
+                        className="rounded-2xl border border-amber-100 bg-[#FFFDFC] p-5 shadow-sm"
+                      >
+                        <div className="flex flex-col gap-5">
+                          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF1E6] text-2xl">
+                                {getServiceIcon(
+                                  booking.serviceTag
+                                )}
+                              </div>
 
-          <aside className="space-y-6">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
+                                  {formatService(
+                                    booking.serviceTag
+                                  )}
+                                </p>
 
+                                <h3 className="mt-1 text-xl font-bold text-slate-900">
+                                  {booking
+                                    .customer
+                                    ?.name ||
+                                    "Customer"}
+                                </h3>
+                              </div>
+                            </div>
 
-            {/* JOB PROGRESS */}
+                            <span
+                              className={`w-fit rounded-full px-4 py-2 text-xs font-bold ${
+                                booking.status ===
+                                "completed"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : booking.status ===
+                                    "completion-pending"
+                                  ? "bg-purple-50 text-purple-700"
+                                  : booking.status ===
+                                    "in-progress"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : booking.status ===
+                                    "accepted"
+                                  ? "bg-amber-50 text-amber-700"
+                                  : booking.status ===
+                                    "rejected"
+                                  ? "bg-red-50 text-red-700"
+                                  : booking.status ===
+                                    "disputed"
+                                  ? "bg-red-50 text-red-700"
+                                  : "bg-orange-50 text-orange-700"
+                              }`}
+                            >
+                              ●{" "}
+                              {STATUS_LABELS[
+                                booking.status
+                              ] ||
+                                booking.status}
+                            </span>
+                          </div>
 
-            <section className="rounded-3xl border border-amber-100 bg-white p-6 shadow-lg">
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="rounded-xl bg-[#FFF8F3] p-4">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Customer requirement
+                              </p>
 
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
-                Job progress
-              </p>
+                              <p className="mt-2 text-sm leading-6 text-slate-700">
+                                {booking.problemDescription ||
+                                  "No description provided."}
+                              </p>
+                            </div>
 
-              <h2 className="mt-2 text-xl font-bold text-slate-900">
-                Track your job
-              </h2>
+                            <div className="rounded-xl bg-[#FFF8F3] p-4">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Booking details
+                              </p>
 
-              <div className="mt-7 space-y-5">
+                              <p className="mt-2 text-sm text-slate-600">
+                                Created:{" "}
+                                <span className="font-semibold text-slate-800">
+                                  {formatDate(
+                                    booking.createdAt
+                                  )}
+                                </span>
+                              </p>
 
-                {statusSteps.map((step, index) => {
+                              <p className="mt-2 text-sm text-slate-600">
+                                Location:{" "}
+                                <span className="font-semibold text-slate-800">
+                                  {formatLocation(
+                                    booking.location
+                                  )}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
 
-                  const completed = index <= currentIndex;
+                          {booking.status ===
+                            "requested" && (
+                            <div className="rounded-2xl border border-orange-100 bg-orange-50 p-4">
+                              <p className="font-bold text-orange-800">
+                                Customer selected you
+                              </p>
 
-                  return (
-                    <div
-                      key={step.key}
-                      className="flex items-start gap-4"
-                    >
+                              <p className="mt-1 text-sm leading-6 text-orange-700">
+                                Review the request and decide whether you can take this job.
+                              </p>
+                            </div>
+                          )}
 
-                      <div className="flex flex-col items-center">
+                          {booking.status ===
+                            "completion-pending" && (
+                            <div className="rounded-2xl border border-purple-100 bg-purple-50 p-4">
+                              <p className="font-bold text-purple-800">
+                                Waiting for customer confirmation
+                              </p>
 
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
-                            completed
-                              ? "bg-amber-600 text-white shadow-md"
-                              : "bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          {completed ? "✓" : step.icon}
+                              <p className="mt-1 text-sm leading-6 text-purple-700">
+                                The customer must confirm the work before payment can proceed.
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="break-all text-xs text-slate-400">
+                              Booking ID:{" "}
+                              <span className="font-mono text-slate-500">
+                                {booking._id}
+                              </span>
+                            </p>
+
+                            {actions && (
+                              <div className="flex flex-col gap-3 sm:flex-row">
+                                {actions.secondary && (
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      rejectBusy ||
+                                      primaryBusy
+                                    }
+                                    onClick={() => {
+                                      void performBookingAction(
+                                        booking._id,
+                                        actions.secondary.action
+                                      );
+                                    }}
+                                    className={`rounded-xl px-5 py-3 font-bold shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${actions.secondary.className}`}
+                                  >
+                                    {rejectBusy
+                                      ? "Rejecting..."
+                                      : actions.secondary.label}
+                                  </button>
+                                )}
+
+                                {actions.primary && (
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      primaryBusy ||
+                                      rejectBusy
+                                    }
+                                    onClick={() => {
+                                      void performBookingAction(
+                                        booking._id,
+                                        actions.primary.action
+                                      );
+                                    }}
+                                    className={`rounded-xl px-5 py-3 font-bold text-white shadow-md transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 ${actions.primary.className}`}
+                                  >
+                                    {primaryBusy
+                                      ? "Updating..."
+                                      : actions.primary.label}
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-
-                        {index < statusSteps.length - 1 && (
-                          <div
-                            className={`mt-2 h-7 w-0.5 ${
-                              index < currentIndex
-                                ? "bg-amber-400"
-                                : "bg-slate-200"
-                            }`}
-                          />
-                        )}
-
-                      </div>
-
-                      <div className="pt-2">
-
-                        <p
-                          className={`text-sm font-bold ${
-                            completed
-                              ? "text-slate-800"
-                              : "text-slate-400"
-                          }`}
-                        >
-                          {step.label}
-                        </p>
-
-                        {step.key === jobStatus && (
-                          <p className="mt-1 text-xs text-amber-600">
-                            Current status
-                          </p>
-                        )}
-
-                      </div>
-
-                    </div>
-                  );
-                })}
-
+                      </article>
+                    );
+                  }
+                )}
               </div>
-
-            </section>
-
-
-            {/* QUICK INFO */}
-
-            <section className="rounded-3xl border border-amber-100 bg-white p-6 shadow-lg">
-
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-2xl">
-                💡
-              </div>
-
-              <h2 className="mt-4 text-xl font-bold text-slate-900">
-                Worker tip
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Keep your customer updated throughout the job. Clear
-                communication helps build trust and better ratings.
-              </p>
-
-            </section>
-
-
-            {/* AVAILABILITY */}
-
-            <section className="rounded-3xl border border-emerald-100 bg-emerald-50/60 p-6">
-
-              <div className="flex items-center justify-between">
-
-                <div>
-
-                  <p className="text-sm font-bold text-slate-800">
-                    Availability
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-500">
-                    Customers can find you
-                  </p>
-
-                </div>
-
-                <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-700">
-                  ON
-                </span>
-
-              </div>
-
-            </section>
-
-          </aside>
-
-        </div>
-
+            )}
+          </div>
+        </section>
       </section>
 
-
-      {/* FOOTER */}
-
       <footer className="border-t border-amber-100 bg-white">
-
-        <div className="mx-auto max-w-7xl px-5 py-7 text-center">
-
+        <div className="mx-auto max-w-7xl px-6 py-8 text-center">
           <p className="text-sm text-slate-400">
             Trusted workers. Better connections. Stronger communities.
           </p>
-
         </div>
-
       </footer>
-
     </main>
   );
 }
