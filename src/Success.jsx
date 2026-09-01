@@ -1,4 +1,4 @@
-function Success({ role, type, onContinue }) {
+function Success({ type, onContinue }) {
   return (
     <div className="success-page">
       <h1>✓ Success!</h1>
