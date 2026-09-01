@@ -15,6 +15,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/workers', workerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/quotes', quoteRoutes);
+app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/payments', paymentRoutes);
