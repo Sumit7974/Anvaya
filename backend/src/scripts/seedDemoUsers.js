@@ -17,11 +17,62 @@ async function upsertDemo(Model, query, data) {
   );
 }
 
+const cityCenters = [
+  ['Gwalior', 26.2183, 78.1828],
+  ['Agra', 27.1767, 78.0081],
+  ['Delhi', 28.6139, 77.2090],
+  ['Jaipur', 26.9124, 75.7873],
+  ['Lucknow', 26.8467, 80.9462],
+  ['Bhopal', 23.2599, 77.4126],
+  ['Indore', 22.7196, 75.8577],
+  ['Nagpur', 21.1458, 79.0882],
+  ['Pune', 18.5204, 73.8567],
+  ['Bengaluru', 12.9716, 77.5946]
+];
+
+const firstNames = ['Amit', 'Ravi', 'Suresh', 'Mahesh', 'Anil', 'Vikram', 'Prakash', 'Mohan', 'Deepak', 'Rajesh', 'Sunil', 'Manoj', 'Dinesh', 'Arun', 'Rakesh', 'Karan', 'Nitin', 'Pawan', 'Ajay', 'Vijay'];
+const lastNames = ['Sharma', 'Verma', 'Patel', 'Kumar', 'Singh', 'Yadav', 'Gupta', 'Mishra', 'Jain', 'Meena'];
+const skillSets = [
+  ['electrician'], ['plumber'], ['carpenter'], ['painter'], ['mason'],
+  ['electrician', 'plumber'], ['electrician', 'carpenter'], ['plumber', 'mason'],
+  ['carpenter', 'painter'], ['electrician', 'painter']
+];
+
+function buildWorkers() {
+  const workers = [];
+  for (let index = 0; index < 100; index += 1) {
+    const [city, baseLat, baseLon] = cityCenters[index % cityCenters.length];
+    const cityIndex = Math.floor(index / cityCenters.length);
+    const offsetLat = (((index * 37) % 17) - 8) * 0.006;
+    const offsetLon = (((index * 53) % 19) - 9) * 0.006;
+    const skills = skillSets[index % skillSets.length];
+    const firstName = firstNames[index % firstNames.length];
+    const lastName = lastNames[(index * 3) % lastNames.length];
+    const ratingAverage = Number((4.1 + ((index * 7) % 9) / 10).toFixed(1));
+    const ratingCount = 3 + ((index * 11) % 36);
+
+    workers.push({
+      email: `demo.worker.${String(index + 1).padStart(3, '0')}@anvaya.test`,
+      name: `${firstName} ${lastName} ${index + 1}`,
+      phone: `91000${String(10000 + index).slice(-5)}`,
+      skills,
+      location: {
+        type: 'Point',
+        coordinates: [Number((baseLon + offsetLon).toFixed(6)), Number((baseLat + offsetLat).toFixed(6))]
+      },
+      rating: { average: ratingAverage, count: ratingCount },
+      demoCity: city,
+      experienceYears: 2 + ((index + cityIndex) % 13)
+    });
+  }
+  return workers;
+}
+
 async function main() {
   if (!process.env.MONGO_URI) throw new Error('MONGO_URI is not configured');
   await mongoose.connect(process.env.MONGO_URI);
 
-  const demoLocation = { type: 'Point', coordinates: [78.22945218042472, 26.272664397954664] };
+  const demoLocation = { type: 'Point', coordinates: [78.1828, 26.2183] };
 
   await upsertDemo(Customer, { email: 'demo.customer@anvaya.test' }, {
     name: 'Anvaya Demo Customer',
@@ -31,54 +82,7 @@ async function main() {
     location: demoLocation
   });
 
-  const demoWorkers = [
-    {
-      email: 'demo.worker@anvaya.test', name: 'Ramesh Kumar', phone: '9000010002',
-      skills: ['electrician', 'plumber'], location: demoLocation,
-      rating: { average: 4.8, count: 12 }
-    },
-    {
-      email: 'demo.worker2@anvaya.test', name: 'Suresh Electrician', phone: '9000010012',
-      skills: ['electrician'], location: { type: 'Point', coordinates: [78.2180, 26.2782] },
-      rating: { average: 4.6, count: 8 }
-    },
-    {
-      email: 'demo.worker3@anvaya.test', name: 'Mahesh Electrician', phone: '9000010013',
-      skills: ['electrician'], location: { type: 'Point', coordinates: [78.2416, 26.2668] },
-      rating: { average: 4.9, count: 15 }
-    },
-    {
-      email: 'demo.worker4@anvaya.test', name: 'Anil Kumar', phone: '9000010014',
-      skills: ['electrician', 'carpenter'], location: { type: 'Point', coordinates: [78.2086, 26.2591] },
-      rating: { average: 4.5, count: 6 }
-    },
-    {
-      email: 'demo.worker5@anvaya.test', name: 'Ravi Plumber', phone: '9000010015',
-      skills: ['plumber'], location: { type: 'Point', coordinates: [78.2348, 26.2862] },
-      rating: { average: 4.7, count: 10 }
-    },
-    {
-      email: 'demo.worker6@anvaya.test', name: 'Prakash Plumber', phone: '9000010016',
-      skills: ['plumber'], location: { type: 'Point', coordinates: [78.2142, 26.2905] },
-      rating: { average: 4.4, count: 5 }
-    },
-    {
-      email: 'demo.worker7@anvaya.test', name: 'Vikram Carpenter', phone: '9000010017',
-      skills: ['carpenter'], location: { type: 'Point', coordinates: [78.2501, 26.2548] },
-      rating: { average: 4.8, count: 11 }
-    },
-    {
-      email: 'demo.worker8@anvaya.test', name: 'Mohan Painter', phone: '9000010018',
-      skills: ['painter'], location: { type: 'Point', coordinates: [78.1985, 26.2851] },
-      rating: { average: 4.6, count: 7 }
-    },
-    {
-      email: 'demo.worker9@anvaya.test', name: 'Deepak Mason', phone: '9000010019',
-      skills: ['mason'], location: { type: 'Point', coordinates: [78.2627, 26.2746] },
-      rating: { average: 4.5, count: 9 }
-    }
-  ];
-
+  const demoWorkers = buildWorkers();
   for (const worker of demoWorkers) {
     await upsertDemo(Worker, { email: worker.email }, {
       ...worker,
@@ -97,6 +101,7 @@ async function main() {
   });
 
   console.log(`Demo users are ready. ${demoWorkers.length} demo workers seeded.`);
+  console.log('Demo workers are distributed across 10 Indian city regions.');
   console.log('Password for all demo users:', DEMO_PASSWORD);
   await mongoose.disconnect();
 }
