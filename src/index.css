@@ -1,34 +1,116 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+
+:root {
+  font-family: "Inter", "Noto Sans Devanagari", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #fffaf6;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
-}
-.btn-primary {
-  background: #1d4ed8;
-  color: white;
-  padding: 12px 28px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: 0.2s;
+html {
+  scroll-behavior: smooth;
+  background: #fffaf6;
 }
 
-.btn-primary:hover {
-  background: #1e40af;
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.10), transparent 30%),
+    linear-gradient(180deg, #fffaf6 0%, #fffdfb 100%);
+  color: #172033;
 }
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.38);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(245, 158, 11, 0.22);
+  color: #172033;
+}
+
 #root {
   width: 100%;
   min-height: 100vh;
 }
 
-body {
-  margin: 0;
-  min-width: 100%;
+/* Keep utility classes from looking cramped on small phones. */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Accessible text for village/town users: comfortable reading width and line height. */
+p {
+  line-height: 1.65;
+}
+
+/* Avoid accidental horizontal scroll from wide cards/tables. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+/* Soft scrollbar that still remains obvious. */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #fff7f0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #f1c27d;
+  border: 2px solid #fff7f0;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #df9b3d;
 }
