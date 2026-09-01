@@ -10,27 +10,12 @@ const resources = {
         continue: "Continue",
         save: "Save",
         cancel: "Cancel",
-        getStarted: "Get Started",
       },
 
       language: {
         english: "English",
         hindi: "हिंदी",
         select: "Language",
-      },
-
-      home: {
-        trustedWorkers: "Trusted Local Workers",
-        title: "Find Trusted Workers",
-        nearYou: "Near You",
-        description:
-          "Connect with verified electricians, plumbers, carpenters, painters, masons and other skilled professionals for your everyday needs.",
-        verifiedWorkers: "Verified Workers",
-        nearbyMatching: "Nearby Matching",
-        ratings: "Ratings & Reviews",
-        flexibleWork: "Flexible Work",
-        tagline:
-          "Trusted workers. Better connections. Stronger communities.",
       },
 
       problem: {
@@ -91,27 +76,12 @@ const resources = {
         continue: "जारी रखें",
         save: "सहेजें",
         cancel: "रद्द करें",
-        getStarted: "शुरू करें",
       },
 
       language: {
         english: "English",
         hindi: "हिंदी",
         select: "भाषा",
-      },
-
-      home: {
-        trustedWorkers: "विश्वसनीय स्थानीय वर्कर्स",
-        title: "अपने पास विश्वसनीय वर्कर्स",
-        nearYou: "पाएं",
-        description:
-          "अपने रोज़मर्रा के कामों के लिए सत्यापित इलेक्ट्रीशियन, प्लंबर, बढ़ई, पेंटर, राजमिस्त्री और अन्य कुशल प्रोफेशनल्स से जुड़ें।",
-        verifiedWorkers: "सत्यापित वर्कर्स",
-        nearbyMatching: "नज़दीकी वर्कर्स",
-        ratings: "रेटिंग और रिव्यू",
-        flexibleWork: "लचीला काम",
-        tagline:
-          "विश्वसनीय वर्कर्स। बेहतर कनेक्शन। मजबूत समुदाय।",
       },
 
       problem: {
@@ -124,8 +94,7 @@ const resources = {
         stop: "रोकें",
         clear: "साफ करें",
         submit: "वर्कर खोजें",
-        voiceHint:
-          "माइक्रोफ़ोन दबाएं और अपनी समस्या बताएं",
+        voiceHint: "माइक्रोफ़ोन दबाएं और अपनी समस्या बताएं",
       },
 
       contractor: {
@@ -158,12 +127,9 @@ const resources = {
         voiceNotSupported:
           "इस ब्राउज़र में वॉइस इनपुट सपोर्ट नहीं करता।",
         listening: "मैं सुन रहा हूँ...",
-        workerAssigned:
-          "वर्कर सफलतापूर्वक असाइन किया गया।",
-        workerRemoved:
-          "वर्कर सफलतापूर्वक हटा दिया गया।",
-        projectCreated:
-          "प्रोजेक्ट सफलतापूर्वक बनाया गया।",
+        workerAssigned: "वर्कर सफलतापूर्वक असाइन किया गया।",
+        workerRemoved: "वर्कर सफलतापूर्वक हटा दिया गया।",
+        projectCreated: "प्रोजेक्ट सफलतापूर्वक बनाया गया।",
       },
     },
   },
@@ -173,7 +139,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: localStorage.getItem("anvaya-language") || "en",
+    lng: "en",
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,

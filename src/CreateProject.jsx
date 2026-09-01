@@ -48,7 +48,7 @@ function CreateProject({ onBack, onNext }) {
   };
 
   return (
-  <main className="min-h-screen w-full bg-[#FFF8F3] px-4 py-7 text-slate-800 sm:px-6 lg:px-10 xl:px-16">
+    <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
       {/* HEADER */}
       <header className="border-b border-amber-100 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
@@ -111,7 +111,7 @@ function CreateProject({ onBack, onNext }) {
       </section>
 
       {/* MAIN */}
-      <section className="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-6xl flex-col justify-center px-5 py-10 sm:px-8 sm:py-12 lg:px-10">
+      <section className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-14">
         <div className="mb-8">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-amber-700 shadow-sm">
             <span>📋</span>
@@ -130,9 +130,9 @@ function CreateProject({ onBack, onNext }) {
 
         {/* FORM CARD */}
         <form
-  onSubmit={handleSubmit}
-  className="w-full rounded-3xl border border-amber-100 bg-white p-7 shadow-xl sm:p-9 lg:p-10"
->
+          onSubmit={handleSubmit}
+          className="rounded-3xl border border-amber-100 bg-white p-6 shadow-xl sm:p-8"
+        >
           {/* PROJECT NAME */}
           <div>
             <label
@@ -189,7 +189,7 @@ function CreateProject({ onBack, onNext }) {
 
             <div className="relative">
               <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg">
-                
+                📍
               </span>
 
               <input
@@ -215,7 +215,7 @@ function CreateProject({ onBack, onNext }) {
 
               <div className="relative">
                 <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
-                  
+                  ₹
                 </span>
 
                 <input
@@ -225,7 +225,7 @@ function CreateProject({ onBack, onNext }) {
                   min="0"
                   value={project.budget}
                   onChange={handleChange}
-                  placeholder=" 50000"
+                  placeholder="50000"
                   className="mt-2 w-full rounded-2xl border border-slate-200 bg-[#FFFDFC] py-3.5 pl-9 pr-4 text-sm text-slate-800 outline-none transition duration-300 placeholder:text-slate-400 hover:border-amber-300 focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
                 />
               </div>

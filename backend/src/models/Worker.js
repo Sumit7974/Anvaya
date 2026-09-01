@@ -2,100 +2,31 @@ const mongoose = require('mongoose');
 
 const workerSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
-
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true
-    },
-
-    phone: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true
-    },
-
-    passwordHash: {
-      type: String,
-      required: true
-    },
-
-    skills: [
-      {
-        type: String,
-        trim: true
-      }
-    ],
-
-    isAvailable: {
-      type: Boolean,
-      default: false
-    },
-
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone: { type: String, required: true, unique: true, trim: true },
+    passwordHash: { type: String, required: true },
+    skills: [{ type: String, trim: true, lowercase: true }],
+    isAvailable: { type: Boolean, default: false },
     location: {
-      type: {
-        type: String,
-        enum: ['Point'],
-        default: 'Point'
-      },
-
-      coordinates: {
-        type: [Number],
-        default: [0, 0]
-      }
+      type: { type: String, enum: ['Point'], default: 'Point' },
+      coordinates: { type: [Number], default: [0, 0] }
     },
-
     verification: {
-      status: {
-        type: String,
-        enum: ['pending', 'verified', 'rejected'],
-        default: 'pending'
-      },
-
-      documents: [
-        {
-          type: String
-        }
-      ],
-
-      verifiedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Admin'
-      },
-
-      verifiedAt: {
-        type: Date
-      }
+      status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
+      documents: [String],
+      verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+      verifiedAt: Date,
+      provider: { type: String, enum: ['manual', 'digilocker'], default: 'manual' },
+      providerSubject: { type: String, select: false }
     },
-
     rating: {
-      average: {
-        type: Number,
-        default: 0
-      },
-
-      count: {
-        type: Number,
-        default: 0
-      }
+      average: { type: Number, default: 0 },
+      count: { type: Number, default: 0 }
     },
-
-    isActive: {
-      type: Boolean,
-      default: true
-    }
+    isActive: { type: Boolean, default: true }
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 workerSchema.index({ location: '2dsphere' });

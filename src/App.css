@@ -1,162 +1,31 @@
 @import "tailwindcss";
 
-/* =========================================================
-   ANVAYA GLOBAL STYLES
-   Responsive foundation — design preserved
-   ========================================================= */
+/* Anvaya's screens use Tailwind utility classes. Keep this file intentionally light
+   so legacy global nav/main/button rules cannot fight component styling. */
 
-
-/* ================= UNIVERSAL BOX SIZING ================= */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+:root {
+  --anvaya-ink: #172033;
+  --anvaya-muted: #64748b;
+  --anvaya-cream: #fffaf6;
+  --anvaya-card: rgba(255, 255, 255, 0.94);
+  --anvaya-border: #f3dfc5;
+  --anvaya-accent: #d97706;
+  --anvaya-accent-dark: #b45309;
 }
 
-
-/* ================= DOCUMENT SETUP ================= */
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
+.anvaya-card {
+  background: var(--anvaya-card);
+  border: 1px solid var(--anvaya-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 28px rgba(71, 45, 20, 0.07);
 }
 
-
-/* ================= BODY ================= */
-
-body {
-  overflow-x: hidden;
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-
-  /* Makes text rendering cleaner */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.anvaya-touch-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
-
-/* ================= RESPONSIVE MEDIA ================= */
-
-img,
-svg,
-video,
-canvas {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-
-/* ================= FORM ELEMENTS ================= */
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-  max-width: 100%;
-}
-
-
-/* ================= TEXT WRAPPING ================= */
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-span,
-button,
-a {
-  overflow-wrap: break-word;
-}
-
-
-/* ================= DEFAULT MARGINS ================= */
-
-p {
-  margin: 0;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0;
-}
-
-
-/* ================= RESPONSIVE FORM ELEMENTS ================= */
-
-textarea,
-input,
-select {
-  max-width: 100%;
-}
-
-
-/* ================= BUTTON BEHAVIOUR ================= */
-
-button {
-  cursor: pointer;
-}
-
-
-/* ================= MOBILE SAFETY ================= */
-
-/*
-  Prevents very long words / IDs / text
-  from breaking the layout on small screens.
-*/
-
-body {
-  word-break: normal;
-}
-
-
-/* ================= SMALL SCREEN ADJUSTMENT ================= */
-
-/*
-  Prevents horizontal scrolling caused by
-  oversized fixed-width elements.
-*/
-
-@media (max-width: 640px) {
-  body {
-    width: 100%;
-    min-width: 0;
-  }
-
-  button,
-  input,
-  textarea,
-  select {
-    min-width: 0;
-  }
-}
-
-
-/* ================= LARGE SCREEN FOUNDATION ================= */
-
-/*
-  Keeps very large displays comfortable without
-  forcing the whole application to stretch infinitely.
-*/
-
-@media (min-width: 1536px) {
-  body {
-    min-width: 0;
-  }
+.anvaya-readable {
+  max-width: 68ch;
+  line-height: 1.7;
 }

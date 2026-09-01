@@ -73,7 +73,7 @@ function ProjectAssigned({ project, selectedWorkers = [], onBack, onContinue }) 
             <div className="bg-[#FFF1E6] px-6 py-7 sm:px-8">
 
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
-                .-Project assigned
+                Project assigned
               </p>
 
               <h2 className="mt-2 text-2xl font-bold text-slate-900">
@@ -178,7 +178,7 @@ function ProjectAssigned({ project, selectedWorkers = [], onBack, onContinue }) 
                   </p>
 
                   <p className="mt-1 text-sm leading-6 text-slate-500">
-                   - Continue to track the project from start to completion.
+                    Continue to track the project from start to completion.
                   </p>
 
                 </div>
