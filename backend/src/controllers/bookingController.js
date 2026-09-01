@@ -1,8 +1,9 @@
 const Booking = require('../models/Booking');
+const Worker = require('../models/Worker');
 
 const createBooking = async (req, res) => {
   try {
-    const { problemDescription, serviceTag, location } = req.body;
+    const { problemDescription, serviceTag, location, workerId } = req.body;
 
     if (!problemDescription) {
       return res.status(400).json({
@@ -10,12 +11,34 @@ const createBooking = async (req, res) => {
       });
     }
 
-    const booking = await Booking.create({
+    const bookingData = {
       customer: req.user.id,
       problemDescription,
       serviceTag,
       location
-    });
+    };
+
+    if (workerId) {
+      const worker = await Worker.findById(workerId);
+
+      if (!worker || !worker.isActive) {
+        return res.status(400).json({ message: 'Selected worker is unavailable or suspended' });
+      }
+
+      if (worker.verification.status !== 'verified') {
+        return res.status(400).json({ message: 'Selected worker is not verified yet' });
+      }
+
+      if (!worker.isAvailable) {
+        return res.status(400).json({ message: 'Selected worker is currently unavailable' });
+      }
+
+      bookingData.worker = workerId;
+      bookingData.status = 'accepted';
+      bookingData.acceptedAt = new Date();
+    }
+
+    const booking = await Booking.create(bookingData);
 
     res.status(201).json({
       message: 'Booking created successfully',
@@ -51,9 +74,24 @@ const getAvailableBookings = async (req, res) => {
     });
   }
 };
+
 const acceptBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    const worker = await Worker.findById(req.user.id);
+
+    if (!worker || !worker.isActive) {
+      return res.status(403).json({
+        message: 'Your account is inactive or suspended. You cannot accept jobs.'
+      });
+    }
+
+    if (worker.verification.status !== 'verified') {
+      return res.status(403).json({
+        message: 'Your account is not verified yet. You cannot accept jobs.'
+      });
+    }
 
     const booking = await Booking.findOne({
       _id: bookingId,
@@ -85,6 +123,7 @@ const acceptBooking = async (req, res) => {
     });
   }
 };
+
 const startBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -118,6 +157,7 @@ const startBooking = async (req, res) => {
     });
   }
 };
+
 const completeBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -151,6 +191,7 @@ const completeBooking = async (req, res) => {
     });
   }
 };
+
 const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -183,6 +224,7 @@ const cancelBooking = async (req, res) => {
     });
   }
 };
+
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({
@@ -203,6 +245,7 @@ const getMyBookings = async (req, res) => {
     });
   }
 };
+
 const rateBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;

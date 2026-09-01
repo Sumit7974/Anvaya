@@ -20,6 +20,12 @@ const bookingSchema = new mongoose.Schema(
       score: { type: Number, min: 1, max: 5 },
       review: { type: String }
     },
+    payment: {
+      orderId: { type: String },
+      paymentId: { type: String },
+      signature: { type: String },
+      status: { type: String, enum: ['pending', 'paid', 'failed'], default: 'pending' }
+    },
     acceptedAt: { type: Date },
     startedAt: { type: Date },
     completedAt: { type: Date }
