@@ -251,7 +251,13 @@ const rateBooking = async (req, res) => {
     const { bookingId } = req.params;
     const { score, review } = req.body;
 
-    if (!score || score < 1 || score > 5) {
+    const numericScore = Number(score);
+
+    if (
+      !Number.isFinite(numericScore) ||
+      numericScore < 1 ||
+      numericScore > 5
+    ) {
       return res.status(400).json({
         message: 'Rating score must be between 1 and 5'
       });
@@ -262,6 +268,70 @@ const rateBooking = async (req, res) => {
       customer: req.user.id,
       status: 'completed'
     });
+
+    if (!booking) {
+      return res.status(404).json({
+        message: 'Completed booking not found'
+      });
+    }
+
+    if (booking.rating && booking.rating.score) {
+      return res.status(400).json({
+        message: 'Booking has already been rated'
+      });
+    }
+
+    if (!booking.worker) {
+      return res.status(400).json({
+        message: 'Cannot rate a booking without a worker'
+      });
+    }
+
+    const worker = await Worker.findById(booking.worker);
+
+    if (!worker) {
+      return res.status(404).json({
+        message: 'Worker not found'
+      });
+    }
+
+    // Save rating on the booking
+    booking.rating = {
+      score: numericScore,
+      review: review || ''
+    };
+
+    // Update worker rating
+    const oldCount = worker.rating.count || 0;
+    const oldAverage = worker.rating.average || 0;
+
+    const newCount = oldCount + 1;
+    const newAverage =
+      ((oldAverage * oldCount) + numericScore) / newCount;
+
+    worker.rating.count = newCount;
+    worker.rating.average = Number(newAverage.toFixed(2));
+
+    await booking.save();
+    await worker.save();
+
+    res.status(200).json({
+      message: 'Rating submitted successfully',
+      rating: booking.rating,
+      workerRating: {
+        average: worker.rating.average,
+        count: worker.rating.count
+      }
+    });
+
+  } catch (error) {
+    console.error('Rate booking error:', error);
+
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+};
 
     if (!booking) {
       return res.status(404).json({

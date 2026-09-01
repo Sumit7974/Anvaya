@@ -2,7 +2,8 @@ const express = require('express');
 
 const {
   getPendingWorkers,
-  verifyWorker
+  verifyWorker,
+  updateWorkerStatus
 } = require('../controllers/adminController');
 
 const {
@@ -28,6 +29,15 @@ router.patch(
   protect,
   authorize('admin', 'superadmin'),
   verifyWorker
+);
+
+
+// Suspend or reactivate worker
+router.patch(
+  '/workers/:workerId/status',
+  protect,
+  authorize('admin', 'superadmin'),
+  updateWorkerStatus
 );
 
 
