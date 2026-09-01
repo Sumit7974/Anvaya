@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LanguageSwitcher from "./languageSwitcher";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const roles = [
   {
