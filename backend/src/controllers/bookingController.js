@@ -3,6 +3,7 @@ const Worker = require('../models/Worker');
 
 const MAX_SERVICE_RADIUS_KM = 15;
 const VALID_SERVICES = new Set(['electrician', 'plumber', 'carpenter', 'painter', 'mason']);
+const ACTIVE_WORK_STATUSES = ['accepted', 'quote-pending', 'in-progress', 'completion-pending'];
 
 const normalizePoint = location => {
   if (!location || location.type !== 'Point' || !Array.isArray(location.coordinates) || location.coordinates.length !== 2) return null;
@@ -24,13 +25,7 @@ const createBooking = async (req, res) => {
     const bookingData = { customer: req.user.id, problemDescription: problemDescription.trim().slice(0, 2000), serviceTag: normalizedService || undefined, location: point, status: 'requested' };
 
     if (workerId) {
-      const workerFilter = {
-        _id: workerId,
-        isActive: true,
-        isAvailable: true,
-        'verification.status': 'verified',
-        location: { $near: { $geometry: point, $maxDistance: MAX_SERVICE_RADIUS_KM * 1000 } }
-      };
+      const workerFilter = { _id: workerId, isActive: true, isAvailable: true, 'verification.status': 'verified', location: { $near: { $geometry: point, $maxDistance: MAX_SERVICE_RADIUS_KM * 1000 } } };
       if (normalizedService) workerFilter.skills = normalizedService;
       const worker = await Worker.findOne(workerFilter).select('_id name isActive isAvailable verification skills');
       if (!worker) return res.status(400).json({ message: 'Selected worker is unavailable, unverified, outside the service area, or does not provide this service' });
@@ -63,12 +58,14 @@ const getWorkerBookings = async (req, res) => {
 
 const acceptBooking = async (req, res) => {
   try {
-    const worker = await Worker.findById(req.user.id);
-    if (!worker || !worker.isActive) return res.status(403).json({ message: 'Your account is inactive or suspended. You cannot accept jobs.' });
-    if (worker.verification.status !== 'verified') return res.status(403).json({ message: 'Your account is not verified yet. You cannot accept jobs.' });
-    if (!worker.isAvailable) return res.status(403).json({ message: 'You must be available to accept jobs.' });
+    const worker = await Worker.findOneAndUpdate({ _id: req.user.id, isActive: true, isAvailable: true, 'verification.status': 'verified' }, { $set: { isAvailable: false } }, { new: true });
+    if (!worker) return res.status(403).json({ message: 'You must be active, verified, and available to accept a job.' });
+
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'requested' }, { $set: { status: 'accepted', acceptedAt: new Date() } }, { new: true });
-    if (!booking) return res.status(404).json({ message: 'Booking not found or no longer available' });
+    if (!booking) {
+      await Worker.updateOne({ _id: req.user.id }, { $set: { isAvailable: true } });
+      return res.status(404).json({ message: 'Booking not found or no longer available' });
+    }
     return res.status(200).json({ message: 'Booking accepted successfully', booking });
   } catch (error) { console.error('Accept booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -87,20 +84,14 @@ const rejectBooking = async (req, res) => {
 
 const startBooking = async (req, res) => {
   try {
-    const worker = await Worker.findById(req.user.id);
-    if (!worker || !worker.isActive) return res.status(403).json({ message: 'Your account is inactive or suspended.' });
-    if (worker.verification.status !== 'verified') return res.status(403).json({ message: 'Your account is not verified yet.' });
-    const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'accepted' }, { $set: { status: 'in-progress', startedAt: new Date() } }, { new: true });
-    if (!booking) return res.status(404).json({ message: 'Booking not found or cannot be started' });
+    const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'accepted', 'quote.amount': { $exists: true, $gte: 1 }, 'quote.customerRespondedAt': { $exists: true } }, { $set: { status: 'in-progress', startedAt: new Date() } }, { new: true });
+    if (!booking) return res.status(400).json({ message: 'Work cannot start until the worker sends a quote and the customer accepts it.' });
     return res.status(200).json({ message: 'Booking started successfully', booking });
   } catch (error) { console.error('Start booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
 
 const requestCompletion = async (req, res) => {
   try {
-    const worker = await Worker.findById(req.user.id);
-    if (!worker || !worker.isActive) return res.status(403).json({ message: 'Your account is inactive or suspended.' });
-    if (worker.verification.status !== 'verified') return res.status(403).json({ message: 'Your account is not verified yet.' });
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'in-progress' }, { $set: { status: 'completion-pending', completionRequestedAt: new Date() } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or completion cannot be requested' });
     return res.status(200).json({ message: 'Completion request sent to customer', booking });
@@ -112,6 +103,7 @@ const confirmCompletion = async (req, res) => {
     const now = new Date();
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: 'completion-pending' }, { $set: { status: 'completed', customerConfirmedAt: now, completedAt: now } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or is not waiting for confirmation' });
+    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
     return res.status(200).json({ message: 'Work confirmed successfully', booking });
   } catch (error) { console.error('Confirm completion error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -120,6 +112,7 @@ const disputeCompletion = async (req, res) => {
   try {
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: 'completion-pending' }, { $set: { status: 'disputed', disputedAt: new Date() } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or is not waiting for confirmation' });
+    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
     return res.status(200).json({ message: 'Completion disputed. Payment remains locked.', booking });
   } catch (error) { console.error('Dispute completion error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -128,6 +121,7 @@ const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: { $in: ['requested', 'accepted'] } }, { $set: { status: 'cancelled' } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or cannot be cancelled' });
+    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
     return res.status(200).json({ message: 'Booking cancelled successfully', booking });
   } catch (error) { console.error('Cancel booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
