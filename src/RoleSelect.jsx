@@ -1,396 +1,166 @@
-// function RoleSelect({ onSelect, onBack }) {
-//   return (
-//     <main className="min-h-screen bg-[#FFF8F3] px-5 py-10 text-slate-800">
-
-//       {/* BACK BUTTON */}
-
-//       <div className="mx-auto max-w-6xl">
-//         <button
-//           onClick={onBack}
-//           className="group flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-x-1 hover:border-amber-300 hover:text-amber-700 hover:shadow-md active:scale-95"
-//         >
-//           <span className="text-lg transition-transform duration-300 group-hover:-translate-x-1">
-//             ←
-//           </span>
-
-//           <span>Back</span>
-//         </button>
-//       </div>
-
-
-//       {/* MAIN */}
-
-//       <div className="mx-auto mt-8 max-w-5xl">
-
-//         {/* LOGO */}
-
-//         <div className="text-center">
-
-//           <img
-//             src="/anvaya-logo.png"
-//             alt="Anvaya"
-//             className="mx-auto h-20 w-auto object-contain"
-//           />
-
-//           <p className="mt-5 text-sm font-bold uppercase tracking-[0.18em] text-amber-700">
-//             Welcome to Anvaya
-//           </p>
-
-//           <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
-//             Who are you?
-//           </h1>
-
-//           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500 sm:text-lg">
-//             Choose how you want to use Anvaya
-//           </p>
-
-//         </div>
-
-
-//         {/* ROLE CARDS */}
-
-//         <div className="mx-auto mt-10 grid max-w-4xl gap-7 md:grid-cols-2">
-
-
-//           {/* ================= WORKER ================= */}
-
-//           <button
-//             onClick={() => onSelect("worker")}
-//             className="group relative overflow-hidden rounded-3xl border border-amber-100 bg-white p-8 text-left shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300 hover:shadow-2xl active:scale-[0.98]"
-//           >
-
-//             {/* Decorative circle */}
-
-//             <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-amber-50 transition-transform duration-500 group-hover:scale-150" />
-
-
-//             <div className="relative">
-
-//               <div className="flex items-center justify-between">
-
-//                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-3xl transition duration-300 group-hover:scale-110 group-hover:rotate-2">
-//                   👷
-//                 </div>
-
-//                 <span className="text-2xl text-slate-300 transition-all duration-300 group-hover:translate-x-2 group-hover:text-amber-600">
-//                   →
-//                 </span>
-
-//               </div>
-
-
-//               <h2 className="mt-7 text-2xl font-bold text-slate-900">
-//                 I'm a Worker
-//               </h2>
-
-
-//               <p className="mt-3 leading-7 text-slate-500">
-//                 Find work, showcase your skills and connect with people who
-//                 need your services.
-//               </p>
-
-
-//               <div className="mt-6 inline-flex rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition duration-300 group-hover:bg-amber-100">
-//                 Continue as Worker
-//               </div>
-
-//             </div>
-
-//           </button>
-
-
-//           {/* ================= CUSTOMER ================= */}
-
-//           <button
-//             onClick={() => onSelect("customer")}
-//             className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-8 text-left shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-orange-300 hover:shadow-2xl active:scale-[0.98]"
-//           >
-
-//             {/* Decorative circle */}
-
-//             <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-orange-50 transition-transform duration-500 group-hover:scale-150" />
-
-
-//             <div className="relative">
-
-//               <div className="flex items-center justify-between">
-
-//                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-100 text-3xl transition duration-300 group-hover:scale-110 group-hover:-rotate-2">
-//                   👤
-//                 </div>
-
-//                 <span className="text-2xl text-slate-300 transition-all duration-300 group-hover:translate-x-2 group-hover:text-orange-600">
-//                   →
-//                 </span>
-
-//               </div>
-
-
-//               <h2 className="mt-7 text-2xl font-bold text-slate-900">
-//                 I'm a Customer
-//               </h2>
-
-
-//               <p className="mt-3 leading-7 text-slate-500">
-//                 Find trusted skilled workers near you and get the help you
-//                 need with confidence.
-//               </p>
-
-
-//               <div className="mt-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition duration-300 group-hover:bg-orange-100">
-//                 Continue as Customer
-//               </div>
-
-//             </div>
-
-//           </button>
-
-//         </div>
-
-
-//         {/* FOOTER */}
-
-//         <div className="mt-12 text-center">
-
-//           <div className="mx-auto mb-4 h-px max-w-xs bg-amber-100" />
-
-//           <p className="text-sm text-slate-400">
-//             Trusted workers. Better connections. Stronger communities.
-//           </p>
-
-//         </div>
-
-//       </div>
-
-//     </main>
-//   );
-// }
-
-// export default RoleSelect;
 import { useState } from "react";
-import LanguageSwitcher from "./languageSwitcher";
+import LanguageSwitcher from "./LanguageSwitcher";
+
+const roles = [
+  {
+    id: "customer",
+    icon: "🏠",
+    title: "I need a worker",
+    hindi: "मुझे कामगार चाहिए",
+    description:
+      "Find verified local professionals, explain the work, compare quotes and pay safely after you are satisfied.",
+    hindiDescription:
+      "भरोसेमंद स्थानीय कामगार खोजें, काम की जानकारी दें, कीमत तय करें और संतुष्ट होने के बाद भुगतान करें।",
+    badge: "For customers",
+    bg: "bg-orange-50",
+    iconBg: "bg-orange-100"
+  },
+  {
+    id: "worker",
+    icon: "👷",
+    title: "I am a worker",
+    hindi: "मैं कामगार हूँ",
+    description:
+      "Receive nearby job requests, review the work note, accept or reject, and send your own quote.",
+    hindiDescription:
+      "पास के काम के अनुरोध देखें, काम की जानकारी पढ़ें, स्वीकार या अस्वीकार करें और अपनी कीमत बताएं।",
+    badge: "For skilled workers",
+    bg: "bg-amber-50",
+    iconBg: "bg-amber-100"
+  },
+  {
+    id: "contractor",
+    icon: "🏗️",
+    title: "I am a contractor",
+    hindi: "मैं ठेकेदार हूँ",
+    description:
+      "Create projects, find skilled workers and coordinate your team from one place.",
+    hindiDescription:
+      "परियोजनाएँ बनाएँ, कुशल कामगार खोजें और अपनी टीम को एक ही जगह से संभालें।",
+    badge: "For contractors",
+    bg: "bg-yellow-50",
+    iconBg: "bg-yellow-100"
+  }
+];
 
 function RoleSelect({ onSelect, onBack }) {
   const [language, setLanguage] = useState("en");
-
   const isHindi = language === "hi";
 
   return (
-    <main className="min-h-screen bg-[#FFF8F3] px-5 py-10 text-slate-800">
+    <main className="min-h-screen bg-[#FFF9F4] text-slate-800">
+      <header className="border-b border-amber-100 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <img
+              src="/anvaya-logo.png"
+              alt="Anvaya"
+              className="h-12 w-auto"
+            />
+            <div className="hidden sm:block">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">
+                Anvaya
+              </p>
+              <p className="text-sm font-semibold text-slate-600">
+                {isHindi ? "आपके पास भरोसेमंद काम" : "Trusted work, closer to you"}
+              </p>
+            </div>
+          </div>
 
-      {/* TOP BAR */}
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher
+              language={language}
+              onLanguageChange={setLanguage}
+            />
+            <button
+              type="button"
+              onClick={onBack}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:border-amber-300 hover:text-amber-700"
+            >
+              ← {isHindi ? "वापस" : "Back"}
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
-
-        {/* BACK BUTTON */}
-
-        <button
-          onClick={onBack}
-          className="group flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-300 hover:-translate-x-1 hover:border-amber-300 hover:text-amber-700 hover:shadow-md active:scale-95"
-        >
-          <span className="text-lg transition-transform duration-300 group-hover:-translate-x-1">
-            ←
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-flex rounded-full border border-amber-200 bg-white px-4 py-2 text-sm font-bold text-amber-700 shadow-sm">
+            {isHindi ? "अन्वया में आपका स्वागत है" : "Welcome to Anvaya"}
           </span>
 
-          <span>{isHindi ? "वापस" : "Back"}</span>
-        </button>
-
-        {/* LANGUAGE SWITCHER */}
-
-        <LanguageSwitcher
-          language={language}
-          onLanguageChange={setLanguage}
-        />
-
-      </div>
-
-      {/* MAIN */}
-
-      <div className="mx-auto mt-8 max-w-5xl">
-
-        {/* LOGO */}
-
-        <div className="text-center">
-
-          <img
-            src="/anvaya-logo.png"
-            alt="Anvaya"
-            className="mx-auto h-20 w-auto object-contain"
-          />
-
-          <p className="mt-5 text-sm font-bold uppercase tracking-[0.18em] text-amber-700">
-            {isHindi
-              ? "अन्वया में आपका स्वागत है"
-              : "Welcome to Anvaya"}
-          </p>
-
-          <h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">
-            {isHindi ? "आप कौन हैं?" : "Who are you?"}
+          <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-5xl">
+            {isHindi ? "आप अन्वया का उपयोग कैसे करेंगे?" : "How will you use Anvaya?"}
           </h1>
 
-          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
             {isHindi
-              ? "चुनें कि आप अन्वया का उपयोग कैसे करना चाहते हैं"
-              : "Choose how you want to use Anvaya"}
+              ? "अपनी भूमिका चुनें। आगे आपको सरल कदमों में मार्गदर्शन मिलेगा।"
+              : "Choose your role. We will guide you through the next steps in simple screens."}
           </p>
-
         </div>
 
-        {/* ROLE CARDS */}
-
-        <div className="mx-auto mt-10 grid max-w-6xl gap-7 md:grid-cols-3">
-
-          {/* ================= WORKER ================= */}
-
-          <button
-            onClick={() => onSelect("worker")}
-            className="group relative overflow-hidden rounded-3xl border border-amber-100 bg-white p-8 text-left shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-amber-300 hover:shadow-2xl active:scale-[0.98]"
-          >
-
-            {/* Decorative circle */}
-
-            <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-amber-50 transition-transform duration-500 group-hover:scale-150" />
-
-            <div className="relative">
-
-              <div className="flex items-center justify-between">
-
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-3xl transition duration-300 group-hover:scale-110 group-hover:rotate-2">
-                  👷
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {roles.map((role) => (
+            <button
+              key={role.id}
+              type="button"
+              onClick={() => onSelect(role.id)}
+              className="group relative overflow-hidden rounded-3xl border border-slate-100 bg-white p-6 text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:border-amber-200 hover:shadow-xl focus-visible:ring-4 focus-visible:ring-amber-100"
+            >
+              <div className={`absolute inset-x-0 top-0 h-1 ${role.bg.replace("50", "400")}`} />
+              <div className="flex items-start justify-between gap-4">
+                <div className={`flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${role.iconBg}`}>
+                  {role.icon}
                 </div>
-
-                <span className="text-2xl text-slate-300 transition-all duration-300 group-hover:translate-x-2 group-hover:text-amber-600">
+                <span className="text-xl text-slate-300 transition group-hover:translate-x-1 group-hover:text-amber-600">
                   →
                 </span>
-
               </div>
 
-              <h2 className="mt-7 text-2xl font-bold text-slate-900">
-                {isHindi ? "मैं एक कामगार हूँ" : "I'm a Worker"}
+              <span className="mt-6 inline-flex rounded-full bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-500">
+                {isHindi ? role.badge : role.badge}
+              </span>
+
+              <h2 className="mt-4 text-xl font-bold leading-7 text-slate-900 sm:text-2xl">
+                {isHindi ? role.hindi : role.title}
               </h2>
 
-              <p className="mt-3 leading-7 text-slate-500">
-                {isHindi
-                  ? "काम खोजें, अपने कौशल को दिखाएँ और उन लोगों से जुड़ें जिन्हें आपकी सेवाओं की आवश्यकता है।"
-                  : "Find work, showcase your skills and connect with people who need your services."}
+              <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                {isHindi ? role.hindiDescription : role.description}
               </p>
 
-              <div className="mt-6 inline-flex rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition duration-300 group-hover:bg-amber-100">
-                {isHindi
-                  ? "कामगार के रूप में जारी रखें"
-                  : "Continue as Worker"}
+              <div className="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition group-hover:bg-amber-600">
+                {isHindi ? "आगे बढ़ें" : "Continue"}
               </div>
-
-            </div>
-
-          </button>
-
-          {/* ================= CUSTOMER ================= */}
-
-          <button
-            onClick={() => onSelect("customer")}
-            className="group relative overflow-hidden rounded-3xl border border-orange-100 bg-white p-8 text-left shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-orange-300 hover:shadow-2xl active:scale-[0.98]"
-          >
-
-            {/* Decorative circle */}
-
-            <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-orange-50 transition-transform duration-500 group-hover:scale-150" />
-
-            <div className="relative">
-
-              <div className="flex items-center justify-between">
-
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-100 text-3xl transition duration-300 group-hover:scale-110 group-hover:-rotate-2">
-                  👤
-                </div>
-
-                <span className="text-2xl text-slate-300 transition-all duration-300 group-hover:translate-x-2 group-hover:text-orange-600">
-                  →
-                </span>
-
-              </div>
-
-              <h2 className="mt-7 text-2xl font-bold text-slate-900">
-                {isHindi ? "मैं एक ग्राहक हूँ" : "I'm a Customer"}
-              </h2>
-
-              <p className="mt-3 leading-7 text-slate-500">
-                {isHindi
-                  ? "अपने आसपास भरोसेमंद कुशल कामगार खोजें और पूरे विश्वास के साथ अपनी ज़रूरत का काम करवाएँ।"
-                  : "Find trusted skilled workers near you and get the help you need with confidence."}
-              </p>
-
-              <div className="mt-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-700 transition duration-300 group-hover:bg-orange-100">
-                {isHindi
-                  ? "ग्राहक के रूप में जारी रखें"
-                  : "Continue as Customer"}
-              </div>
-
-            </div>
-
-          </button>
-          {/* ================= CONTRACTOR ================= */}
-
-<button
-  onClick={() => onSelect("contractor")}
-  className="group relative overflow-hidden rounded-3xl border border-yellow-100 bg-white p-8 text-left shadow-md transition-all duration-300 hover:-translate-y-2 hover:border-yellow-300 hover:shadow-2xl active:scale-[0.98]"
->
-  {/* Decorative circle */}
-
-  <div className="absolute -right-12 -top-12 h-36 w-36 rounded-full bg-yellow-50 transition-transform duration-500 group-hover:scale-150" />
-
-  <div className="relative">
-
-    <div className="flex items-center justify-between">
-
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-100 text-3xl transition duration-300 group-hover:scale-110 group-hover:rotate-2">
-        🏗️
-      </div>
-
-      <span className="text-2xl text-slate-300 transition-all duration-300 group-hover:translate-x-2 group-hover:text-yellow-600">
-        →
-      </span>
-
-    </div>
-
-    <h2 className="mt-7 text-2xl font-bold text-slate-900">
-      {isHindi ? "मैं एक ठेकेदार हूँ" : "I'm a Contractor"}
-    </h2>
-
-    <p className="mt-3 leading-7 text-slate-500">
-      {isHindi
-        ? "अपनी परियोजनाएँ बनाएँ, कुशल कामगार खोजें और अपनी टीम को आसानी से प्रबंधित करें।"
-        : "Create projects, find skilled workers and manage your team with ease."}
-    </p>
-
-    <div className="mt-6 inline-flex rounded-full bg-yellow-50 px-4 py-2 text-sm font-semibold text-yellow-700 transition duration-300 group-hover:bg-yellow-100">
-      {isHindi
-        ? "ठेकेदार के रूप में जारी रखें"
-        : "Continue as Contractor"}
-    </div>
-
-  </div>
-
-</button>
-
+            </button>
+          ))}
         </div>
 
-        {/* FOOTER */}
-
-        <div className="mt-12 text-center">
-
-          <div className="mx-auto mb-4 h-px max-w-xs bg-amber-100" />
-
-          <p className="text-sm text-slate-400">
-            {isHindi
-              ? "भरोसेमंद कामगार। बेहतर जुड़ाव। मजबूत समुदाय।"
-              : "Trusted workers. Better connections. Stronger communities."}
-          </p>
-
+        <div className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-3">
+          {[
+            ["✓", isHindi ? "सत्यापित कामगार" : "Verified workers"],
+            ["₹", isHindi ? "खुली कीमत" : "Clear pricing"],
+            ["🛡", isHindi ? "संतुष्टि पहले" : "Satisfaction first"]
+          ].map(([icon, text]) => (
+            <div
+              key={text}
+              className="flex items-center justify-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold text-slate-600 shadow-sm"
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+                {icon}
+              </span>
+              {text}
+            </div>
+          ))}
         </div>
 
-      </div>
-
+        <p className="mt-10 text-center text-sm text-slate-400">
+          {isHindi
+            ? "भरोसेमंद कामगार। बेहतर जुड़ाव। मजबूत समुदाय।"
+            : "Trusted workers. Better connections. Stronger communities."}
+        </p>
+      </section>
     </main>
   );
 }
