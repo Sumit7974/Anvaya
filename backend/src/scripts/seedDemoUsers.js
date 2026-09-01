@@ -13,7 +13,7 @@ async function upsertDemo(Model, query, data) {
   return Model.findOneAndUpdate(
     query,
     { $set: { ...data, passwordHash, isActive: true } },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
   );
 }
 
@@ -24,14 +24,14 @@ async function main() {
   await upsertDemo(Customer, { email: 'demo.customer@anvaya.test' }, {
     name: 'Anvaya Demo Customer',
     email: 'demo.customer@anvaya.test',
-    phone: '9000000001',
+    phone: '9000010001',
     address: 'Demo Town'
   });
 
   await upsertDemo(Worker, { email: 'demo.worker@anvaya.test' }, {
     name: 'Ramesh Kumar',
     email: 'demo.worker@anvaya.test',
-    phone: '9000000002',
+    phone: '9000010002',
     skills: ['electrician', 'plumber'],
     isAvailable: true,
     verification: { status: 'verified', provider: 'manual', documents: [] }
@@ -40,7 +40,7 @@ async function main() {
   await upsertDemo(Contractor, { email: 'demo.contractor@anvaya.test' }, {
     name: 'Anvaya Demo Contractor',
     email: 'demo.contractor@anvaya.test',
-    phone: '9000000003',
+    phone: '9000010003',
     companyName: 'Demo Works',
     location: 'Demo Town',
     primaryService: 'Home Services'
