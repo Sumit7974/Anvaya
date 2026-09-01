@@ -1,8 +1,9 @@
 const Booking = require('../models/Booking');
+const Worker = require('../models/Worker');
 
 const createBooking = async (req, res) => {
   try {
-    const { problemDescription, serviceTag, location } = req.body;
+    const { problemDescription, serviceTag, location, workerId } = req.body;
 
     if (!problemDescription) {
       return res.status(400).json({
@@ -10,21 +11,49 @@ const createBooking = async (req, res) => {
       });
     }
 
-    const booking = await Booking.create({
+    const bookingData = {
       customer: req.user.id,
       problemDescription,
       serviceTag,
       location
-    });
+    };
 
-    res.status(201).json({
+    if (workerId) {
+      const worker = await Worker.findById(workerId);
+
+      if (!worker || !worker.isActive) {
+        return res.status(400).json({
+          message: 'Selected worker is unavailable or suspended'
+        });
+      }
+
+      if (worker.verification.status !== 'verified') {
+        return res.status(400).json({
+          message: 'Selected worker is not verified yet'
+        });
+      }
+
+      if (!worker.isAvailable) {
+        return res.status(400).json({
+          message: 'Selected worker is currently unavailable'
+        });
+      }
+
+      bookingData.worker = workerId;
+      bookingData.status = 'accepted';
+      bookingData.acceptedAt = new Date();
+    }
+
+    const booking = await Booking.create(bookingData);
+
+    return res.status(201).json({
       message: 'Booking created successfully',
       booking
     });
   } catch (error) {
     console.error('Create booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
@@ -39,21 +68,42 @@ const getAvailableBookings = async (req, res) => {
       .populate('customer', 'name phone')
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       count: bookings.length,
       bookings
     });
   } catch (error) {
     console.error('Get available bookings error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const acceptBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    const worker = await Worker.findById(req.user.id);
+
+    if (!worker || !worker.isActive) {
+      return res.status(403).json({
+        message: 'Your account is inactive or suspended. You cannot accept jobs.'
+      });
+    }
+
+    if (worker.verification.status !== 'verified') {
+      return res.status(403).json({
+        message: 'Your account is not verified yet. You cannot accept jobs.'
+      });
+    }
+
+    if (!worker.isAvailable) {
+      return res.status(403).json({
+        message: 'You must be available to accept jobs.'
+      });
+    }
 
     const booking = await Booking.findOne({
       _id: bookingId,
@@ -73,21 +123,36 @@ const acceptBooking = async (req, res) => {
 
     await booking.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Booking accepted successfully',
       booking
     });
   } catch (error) {
     console.error('Accept booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const startBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    const worker = await Worker.findById(req.user.id);
+
+    if (!worker || !worker.isActive) {
+      return res.status(403).json({
+        message: 'Your account is inactive or suspended.'
+      });
+    }
+
+    if (worker.verification.status !== 'verified') {
+      return res.status(403).json({
+        message: 'Your account is not verified yet.'
+      });
+    }
 
     const booking = await Booking.findOne({
       _id: bookingId,
@@ -106,21 +171,30 @@ const startBooking = async (req, res) => {
 
     await booking.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Booking started successfully',
       booking
     });
   } catch (error) {
     console.error('Start booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const completeBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
+
+    const worker = await Worker.findById(req.user.id);
+
+    if (!worker || !worker.isActive) {
+      return res.status(403).json({
+        message: 'Your account is inactive or suspended.'
+      });
+    }
 
     const booking = await Booking.findOne({
       _id: bookingId,
@@ -139,18 +213,19 @@ const completeBooking = async (req, res) => {
 
     await booking.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Booking completed successfully',
       booking
     });
   } catch (error) {
     console.error('Complete booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -171,18 +246,19 @@ const cancelBooking = async (req, res) => {
 
     await booking.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Booking cancelled successfully',
       booking
     });
   } catch (error) {
     console.error('Cancel booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({
@@ -191,24 +267,31 @@ const getMyBookings = async (req, res) => {
       .populate('worker', 'name phone skills rating')
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
+    return res.status(200).json({
       count: bookings.length,
       bookings
     });
   } catch (error) {
     console.error('Get my bookings error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }
 };
+
 const rateBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { score, review } = req.body;
 
-    if (!score || score < 1 || score > 5) {
+    const numericScore = Number(score);
+
+    if (
+      !Number.isFinite(numericScore) ||
+      numericScore < 1 ||
+      numericScore > 5
+    ) {
       return res.status(400).json({
         message: 'Rating score must be between 1 and 5'
       });
@@ -232,21 +315,50 @@ const rateBooking = async (req, res) => {
       });
     }
 
+    if (!booking.worker) {
+      return res.status(400).json({
+        message: 'Cannot rate a booking without a worker'
+      });
+    }
+
+    const worker = await Worker.findById(booking.worker);
+
+    if (!worker) {
+      return res.status(404).json({
+        message: 'Worker not found'
+      });
+    }
+
     booking.rating = {
-      score: Number(score),
-      review: review || ''
+      score: numericScore,
+      review: typeof review === 'string' ? review.trim() : ''
     };
 
-    await booking.save();
+    const oldCount = worker.rating.count || 0;
+    const oldAverage = worker.rating.average || 0;
 
-    res.status(200).json({
+    const newCount = oldCount + 1;
+    const newAverage =
+      ((oldAverage * oldCount) + numericScore) / newCount;
+
+    worker.rating.count = newCount;
+    worker.rating.average = Number(newAverage.toFixed(2));
+
+    await booking.save();
+    await worker.save();
+
+    return res.status(200).json({
       message: 'Rating submitted successfully',
-      rating: booking.rating
+      rating: booking.rating,
+      workerRating: {
+        average: worker.rating.average,
+        count: worker.rating.count
+      }
     });
   } catch (error) {
     console.error('Rate booking error:', error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error'
     });
   }

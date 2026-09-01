@@ -3,7 +3,7 @@ import { useState } from "react";
 import RoleSelect from "./RoleSelect";
 import Login from "./Login";
 import CustomerBooking from "./CustomerBooking";
-import Workerdashboard from "./Workerdashboard"; // Case fixed
+
 import TranslationVoice from "./TranslationVoice";
 
 import ContractorDashboard from "./ContractorDashboard";
@@ -27,6 +27,7 @@ import { LanguageProvider, useLanguage } from "./LanguageContext";
 
 function AppContent() {
   const [page, setPage] = useState("home");
+  const { language, setLanguage, t } = useLanguage();
   const [selectedRole, setSelectedRole] = useState("");
 
   /* CUSTOMER DATA */
@@ -349,84 +350,134 @@ if (page === "WorkProcessStarted") {
   }
 
   /* ================= HOME ================= */
+/* ================= HOME ================= */
 
-  return (
-    <main className="min-h-screen bg-[#FFF1E6] text-slate-900">
-      <nav className="flex items-center justify-between px-6 py-5 sm:px-8">
-        <div className="flex items-center gap-3">
-          <img
-            src="/anvaya-logo.png"
-            alt="Anvaya"
-            className="h-12 w-auto object-contain"
-          />
-          <span className="hidden border-l border-amber-200 pl-3 text-sm font-semibold text-slate-600 sm:block">
-            Local services, made easier
-          </span>
-        </div>
+return (
+  <main className="min-h-screen bg-[#FFF1E6] text-slate-900">
 
-        <button
-          type="button"
-          onClick={() => setPage("translationVoice")}
-          className="rounded-xl border border-amber-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-700 hover:shadow-md active:scale-95"
-        >
-          Get Started
-        </button>
-      </nav>
+    <nav className="flex items-center justify-between px-6 py-5 sm:px-8">
 
-      <section className="flex min-h-[calc(100vh-88px)] flex-col items-center justify-center px-6 pb-16 text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-amber-800 shadow-sm">
-          <span>✨</span>
-          Trusted Local Workers
-        </div>
-
+      <div className="flex items-center gap-3">
         <img
           src="/anvaya-logo.png"
           alt="Anvaya"
-          className="h-40 w-auto object-contain sm:h-48"
+          className="h-12 w-auto object-contain"
         />
 
-        <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-6xl">
-          Find Trusted Workers
-          <span className="text-amber-600"> Near You</span>
-        </h1>
+        <span className="hidden border-l border-amber-200 pl-3 text-sm font-semibold text-slate-600 sm:block">
+          Local services, made easier
+        </span>
+      </div>
 
-        <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
-          Connect with verified electricians, plumbers, carpenters, painters,
-          masons and other skilled professionals for your everyday needs.
-        </p>
+      {/* LANGUAGE SELECTOR */}
+      
+<div className="flex items-center gap-1 rounded-xl border border-amber-200 bg-white p-1 shadow-sm">
+  <button
+    type="button"
+    onClick={() => setLanguage("hi")}
+    className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+      language === "hi"
+        ? "bg-amber-600 text-white shadow-sm"
+        : "text-slate-600 hover:bg-amber-50"
+    }`}
+  >
+    English
+  </button>
 
-        <button
-          type="button"
-          onClick={() => setPage("translationVoice")}
-          className="group mt-9 flex items-center justify-center gap-3 rounded-2xl bg-amber-600 px-8 py-4 font-bold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-2xl active:translate-y-0"
-        >
-          <span>Get Started</span>
-          <span className="text-xl transition-transform duration-300 group-hover:translate-x-2">
-            →
-          </span>
-        </button>
+  <button
+    type="button"
+    onClick={() => setLanguage("en")}
+    className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+      language === "en"
+        ? "bg-amber-600 text-white shadow-sm"
+        : "text-slate-600 hover:bg-amber-50"
+    }`}
+  >
+    हिंदी
+  </button>
 
-        <div className="mt-14 flex max-w-4xl flex-wrap justify-center gap-3">
-          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
-            ✓ Verified Workers
-          </div>
-          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
-            ✓ Nearby Matching
-          </div>
-          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
-            ✓ Ratings & Reviews
-          </div>
-          <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
-            ✓ Flexible Work
-          </div>
+        
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setPage("translationVoice")}
+        className="rounded-xl border border-amber-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-700 hover:shadow-md active:scale-95"
+      >
+        {t("common.getStarted")}
+      </button>
+
+    </nav>
+
+    <section className="flex min-h-[calc(100vh-88px)] flex-col items-center justify-center px-6 pb-16 text-center">
+
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-5 py-2 text-sm font-semibold text-amber-800 shadow-sm">
+        <span>✨</span>
+        {t("home.trustedWorkers")}
+      </div>
+
+      <img
+        src="/anvaya-logo.png"
+        alt="Anvaya"
+        className="h-40 w-auto object-contain sm:h-48"
+      />
+
+      <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight tracking-tight text-slate-900 sm:text-6xl">
+        {t("home.title")}
+        <span className="text-amber-600">
+          {" "}
+          {t("home.nearYou")}
+        </span>
+      </h1>
+
+      <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">
+        {t("home.description")}
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setPage("translationVoice")}
+        className="group mt-9 flex items-center justify-center gap-3 rounded-2xl bg-amber-600 px-8 py-4 font-bold text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-2xl active:translate-y-0"
+      >
+        <span>{t("common.getStarted")}</span>
+
+        <span className="text-xl transition-transform duration-300 group-hover:translate-x-2">
+          →
+        </span>
+      </button>
+
+      <div className="mt-14 flex max-w-4xl flex-wrap justify-center gap-3">
+
+        <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+          ✓ {t("home.verifiedWorkers")}
         </div>
 
-        <p className="mt-12 text-sm text-slate-400">
-          Trusted workers. Better connections. Stronger communities.
-        </p>
-      </section>
-    </main>
-  );
+        <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+          ✓ {t("home.nearbyMatching")}
+        </div>
+
+        <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+          ✓ {t("home.ratings")}
+        </div>
+
+        <div className="rounded-full border border-amber-100 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
+          ✓ {t("home.flexibleWork")}
+        </div>
+
+      </div>
+
+      <p className="mt-12 text-sm text-slate-400">
+        {t("home.tagline")}
+      </p>
+
+    </section>
+
+  </main>
+);
+  
+    
+
+     
 
 }
 function App() {

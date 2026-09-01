@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import LanguageSwitcher from "./languageSwitcher";
-
+import { useLanguage } from "./LanguageContext";
 const translations = {
   en: {
     badge: "Voice-powered service request",
@@ -459,16 +459,16 @@ function TranslationVoice({ onBack,onContinue }) {
   </p>
 
   <h2 className="mt-3 block w-full text-xl font-bold text-white">
-    {language === "en"
-      ? "Simple. Local. Trusted."
-      : "आसान। स्थानीय। भरोसेमंद।"}
-  </h2>
+  {language === "en"
+    ? "Simple. Local. Trusted."
+    : "आसान। स्थानीय। भरोसेमंद।"}
+</h2>
 
-  <p className="mt-3 block w-full text-sm leading-6 text-slate-300">
-    {language === "en"
-      ? "  -Describe your problem and connect with the right professional."
-      : "अपनी समस्या बताएं और सही प्रोफेशनल से जुड़ें।"}
-  </p>
+<p className="mt-3 block w-full text-sm leading-6 text-slate-300">
+  {language === "en"
+    ? "Describe your problem and connect with the right professional."
+    : "अपनी समस्या बताएं और सही प्रोफेशनल से जुड़ें।"}
+</p>
 </section>
 
             
@@ -481,7 +481,7 @@ function TranslationVoice({ onBack,onContinue }) {
     onClick={onContinue}
     className="group flex items-center gap-3 rounded-2xl bg-amber-600 px-8 py-4 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:bg-amber-700 hover:shadow-xl active:translate-y-0"
   >
-    <span>Next</span>
+    <span>{language === "en" ? "Next" : "आगे"}</span>
 
     <span className="text-xl transition-transform duration-300 group-hover:translate-x-2">
       →
@@ -493,8 +493,10 @@ function TranslationVoice({ onBack,onContinue }) {
       <footer className="border-t border-amber-100 bg-white">
         <div className="mx-auto max-w-7xl px-5 py-7 text-center">
           <p className="text-sm text-slate-400">
-            Trusted workers. Better connections. Stronger communities.
-          </p>
+  {language === "en"
+    ? "Trusted workers. Better connections. Stronger communities."
+    : "विश्वसनीय वर्कर्स। बेहतर कनेक्शन। मजबूत समुदाय।"}
+</p>
         </div>
 
       </footer>
