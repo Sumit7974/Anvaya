@@ -14,12 +14,18 @@ const roleModels = {
 };
 
 const generateToken = (id, role) => {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
   return jwt.sign(
     {
       id: id.toString(),
-      role: role
+      role
     },
-    process.env.JWT_SECRET,
+    secret,
     {
       expiresIn: '7d'
     }
@@ -29,28 +35,97 @@ const generateToken = (id, role) => {
 const registerUser = (role) => async (req, res) => {
   try {
     const Model = roleModels[role];
-    const { name, email, phone, password } = req.body;
 
-    if (!name || !email || !password || (role !== 'admin' && !phone)) {
-      return res.status(400).json({ message: 'Please fill all required fields' });
+    if (!Model) {
+      return res.status(400).json({
+        message: 'Invalid registration role'
+      });
+    }
+
+    const {
+      name,
+      email,
+      phone,
+      password,
+      companyName,
+      location,
+      service
+    } = req.body;
+
+    const normalizedName = typeof name === 'string' ? name.trim() : '';
+    const normalizedEmail =
+      typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const normalizedPhone =
+      typeof phone === 'string' ? phone.trim() : '';
+
+    if (
+      !normalizedName ||
+      !normalizedEmail ||
+      !password ||
+      (role !== 'admin' && !normalizedPhone)
+    ) {
+      return res.status(400).json({
+        message: 'Please fill all required fields'
+      });
     }
 
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      return res.status(400).json({
+        message: 'Password must be at least 8 characters long'
+      });
     }
 
-    const existing = await Model.findOne(
-      role === 'admin' ? { email } : { $or: [{ email }, { phone }] }
-    );
+    const existing =
+      role === 'admin'
+        ? await Model.findOne({
+            email: normalizedEmail
+          })
+        : await Model.findOne({
+            $or: [
+              { email: normalizedEmail },
+              { phone: normalizedPhone }
+            ]
+          });
+
     if (existing) {
-      return res.status(400).json({ message: 'Email or phone already registered' });
+      return res.status(400).json({
+        message: 'Email or phone already registered'
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
-    const user = await Model.create({ name, email, phone, passwordHash });
 
-    res.status(201).json({
+    const userData = {
+      name: normalizedName,
+      email: normalizedEmail,
+      passwordHash
+    };
+
+    if (role !== 'admin') {
+      userData.phone = normalizedPhone;
+    }
+
+    if (role === 'contractor') {
+      userData.companyName =
+        typeof companyName === 'string'
+          ? companyName.trim()
+          : '';
+
+      userData.location =
+        typeof location === 'string'
+          ? location.trim()
+          : '';
+
+      userData.primaryService =
+        typeof service === 'string'
+          ? service.trim()
+          : '';
+    }
+
+    const user = await Model.create(userData);
+
+    return res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -58,33 +133,71 @@ const registerUser = (role) => async (req, res) => {
       token: generateToken(user._id, role)
     });
   } catch (err) {
+    console.error('Registration error:', err);
+
     if (err.code === 11000) {
-      return res.status(400).json({ message: 'Email or phone already registered' });
+      return res.status(400).json({
+        message: 'Email or phone already registered'
+      });
     }
-    res.status(500).json({ message: err.message });
+
+    return res.status(500).json({
+      message: 'Server error'
+    });
   }
 };
 
 const loginUser = (role) => async (req, res) => {
   try {
     const Model = roleModels[role];
+
+    if (!Model) {
+      return res.status(400).json({
+        message: 'Invalid login role'
+      });
+    }
+
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' });
+    const normalizedEmail =
+      typeof email === 'string'
+        ? email.trim().toLowerCase()
+        : '';
+
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({
+        message: 'Email and password are required'
+      });
     }
 
-    const user = await Model.findOne({ email: email.toLowerCase() });
+    const user = await Model.findOne({
+      email: normalizedEmail
+    });
+
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({
+        message: 'Invalid email or password'
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (user.isActive === false) {
+      return res.status(403).json({
+        message: 'Your account is inactive or suspended'
+      });
+    }
+
+    const isMatch = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({
+        message: 'Invalid email or password'
+      });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -92,8 +205,15 @@ const loginUser = (role) => async (req, res) => {
       token: generateToken(user._id, role)
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Login error:', err);
+
+    return res.status(500).json({
+      message: 'Server error'
+    });
   }
 };
 
-module.exports = { registerUser, loginUser };
+module.exports = {
+  registerUser,
+  loginUser
+};
