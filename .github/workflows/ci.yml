@@ -42,3 +42,4 @@ jobs:
           node --check src/controllers/bookingController.js
           node --check src/controllers/paymentController.js
           node --check src/controllers/workerController.js
+          node --check src/controllers/serviceController.js
