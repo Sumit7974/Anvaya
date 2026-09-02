@@ -6,7 +6,7 @@ const labels = { requested: 'Request Sent', accepted: 'Accepted', 'quote-pending
 
 function resolveStepIndex(booking) {
   if (!booking) return -1;
-  if (booking.status === 'accepted' && booking.quote?.customerRespondedAt) return steps.indexOf('in-progress');
+  if (booking.status === 'accepted' && booking.quote?.customerRespondedAt) return steps.indexOf('quote-pending');
   return steps.indexOf(booking.status);
 }
 
@@ -24,11 +24,8 @@ function WorkerProcess({ worker, bookingId, onBack, onProceedToPayment, onCompla
       if (!found) throw new Error('Booking not found');
       setBooking(found);
       setError('');
-    } catch (e) {
-      setError(e.message || 'Unable to load booking.');
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setError(e.message || 'Unable to load booking.'); }
+    finally { setLoading(false); }
   }, [bookingId]);
 
   useEffect(() => {
@@ -36,17 +33,12 @@ function WorkerProcess({ worker, bookingId, onBack, onProceedToPayment, onCompla
     const timer = window.setInterval(() => void load(), 4000);
     return () => { window.clearTimeout(first); window.clearInterval(timer); };
   }, [load]);
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
+  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
 
   const remainingMs = useMemo(() => {
     if (!booking?.responseDeadlineAt || booking.status !== 'requested') return 0;
     return Math.max(0, new Date(booking.responseDeadlineAt).getTime() - now);
   }, [booking, now]);
-
   const remainingSeconds = Math.ceil(remainingMs / 1000);
   const minutes = Math.floor(remainingSeconds / 60);
   const seconds = String(remainingSeconds % 60).padStart(2, '0');
@@ -54,35 +46,17 @@ function WorkerProcess({ worker, bookingId, onBack, onProceedToPayment, onCompla
   const index = resolveStepIndex(booking);
 
   const quoteAction = async (action) => {
-    try {
-      setBusy(true);
-      setError('');
-      const data = await apiRequest(`/api/quotes/${bookingId}/${action}`, { method: 'PATCH', token: getStoredToken(), body: action === 'reject' ? { reason: 'Customer rejected the proposed price' } : undefined });
-      setBooking(data.booking);
-    } catch (e) {
-      setError(e.message || 'Unable to process quote.');
-    } finally {
-      setBusy(false);
-    }
+    try { setBusy(true); setError(''); const data = await apiRequest(`/api/quotes/${bookingId}/${action}`, { method: 'PATCH', token: getStoredToken(), body: action === 'reject' ? { reason: 'Customer rejected the proposed price' } : undefined }); setBooking(data.booking); }
+    catch (e) { setError(e.message || 'Unable to process quote.'); }
+    finally { setBusy(false); }
   };
-
   const completion = async (action) => {
-    try {
-      setBusy(true);
-      setError('');
-      const data = await apiRequest(`/api/bookings/${bookingId}/${action}`, { method: 'PATCH', token: getStoredToken() });
-      setBooking(data.booking);
-    } catch (e) {
-      setError(e.message || 'Unable to update completion.');
-    } finally {
-      setBusy(false);
-    }
+    try { setBusy(true); setError(''); const data = await apiRequest(`/api/bookings/${bookingId}/${action}`, { method: 'PATCH', token: getStoredToken() }); setBooking(data.booking); }
+    catch (e) { setError(e.message || 'Unable to update completion.'); }
+    finally { setBusy(false); }
   };
 
-  return <main className="min-h-screen bg-[#FFF8F3] text-slate-800"><header className="border-b border-amber-100 bg-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4"><div className="flex items-center gap-4"><img src="/anvaya-logo.png" alt="Anvaya" className="h-12"/><div><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Your booking</p><p className="font-semibold">Track the job safely</p></div></div><button type="button" onClick={onBack} className="rounded-xl border border-amber-200 bg-white px-4 py-2">← Back</button></div></header><section className="mx-auto max-w-5xl px-5 py-8"><div className="overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-xl"><div className="bg-[#FFF1E6] p-7"><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Selected worker</p><h1 className="mt-1 text-3xl font-bold">{worker?.name || 'Worker'}</h1><p className="font-semibold text-amber-700">{worker?.skills?.[0] || 'Professional service'}</p></div><div className="p-7">{loading ? <p>Loading booking...</p> : error && !booking ? <div className="rounded-xl bg-red-50 p-4 text-red-700">{error}</div> : <><div className="grid gap-3 sm:grid-cols-6">{steps.map((step, i) => <div key={step} className={`rounded-xl border p-3 ${i <= index ? 'border-amber-300 bg-amber-50' : 'border-slate-100 bg-slate-50'}`}><div className="font-bold">{i <= index ? '✓' : i + 1}</div><p className="mt-2 text-xs font-bold">{labels[step]}</p></div>)}</div>
-
-{error && booking && <div className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}
-<div className="mt-7 rounded-2xl border border-amber-100 bg-[#FFF8F3] p-5"><p className="text-xs font-bold uppercase text-slate-400">Your request</p><p className="mt-2 whitespace-pre-wrap leading-6">{booking?.problemDescription}</p></div>
+  return <main className="min-h-screen bg-[#FFF8F3] text-slate-800"><header className="border-b border-amber-100 bg-white"><div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4"><div className="flex items-center gap-4"><img src="/anvaya-logo.png" alt="Anvaya" className="h-12"/><div><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Your booking</p><p className="font-semibold">Track the job safely</p></div></div><button type="button" onClick={onBack} className="rounded-xl border border-amber-200 bg-white px-4 py-2">← Back</button></div></header><section className="mx-auto max-w-5xl px-5 py-8"><div className="overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-xl"><div className="bg-[#FFF1E6] p-7"><p className="text-xs font-bold uppercase tracking-widest text-amber-700">Selected worker</p><h1 className="mt-1 text-3xl font-bold">{worker?.name || 'Worker'}</h1><p className="font-semibold text-amber-700">{worker?.skills?.[0] || 'Professional service'}</p></div><div className="p-7">{loading ? <p>Loading booking...</p> : error && !booking ? <div className="rounded-xl bg-red-50 p-4 text-red-700">{error}</div> : <><div className="grid gap-3 sm:grid-cols-6">{steps.map((step, i) => <div key={step} className={`rounded-xl border p-3 ${i <= index ? 'border-amber-300 bg-amber-50' : 'border-slate-100 bg-slate-50'}`}><div className="font-bold">{i <= index ? '✓' : i + 1}</div><p className="mt-2 text-xs font-bold">{labels[step]}</p></div>)}</div>{error && booking && <div className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-semibold text-red-700">{error}</div>}<div className="mt-7 rounded-2xl border border-amber-100 bg-[#FFF8F3] p-5"><p className="text-xs font-bold uppercase text-slate-400">Your request</p><p className="mt-2 whitespace-pre-wrap leading-6">{booking?.problemDescription}</p></div>
 {booking?.status === 'requested' && !isExpired && <div className="mt-6 rounded-3xl border-2 border-amber-200 bg-amber-50 p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><b className="text-lg">⏱ Waiting for {worker?.name || 'the worker'}</b><p className="mt-1 text-sm text-slate-600">You won't be kept waiting indefinitely. If they don't respond, you can quickly choose another available worker.</p></div><div className="rounded-2xl bg-white px-5 py-3 text-center shadow-sm"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Response window</p><p className="text-2xl font-bold tabular-nums text-amber-700">{minutes}:{seconds}</p></div></div></div>}
 {isExpired && <div className="mt-6 rounded-3xl border-2 border-orange-200 bg-orange-50 p-6"><p className="text-xs font-bold uppercase tracking-widest text-orange-700">Worker did not respond</p><h2 className="mt-1 text-2xl font-bold text-slate-900">Don't wait — choose another worker</h2><p className="mt-2 leading-6 text-slate-600">{worker?.name || 'The selected worker'} did not respond within the response window. Your request has not been charged, and the worker is no longer holding your booking.</p><button type="button" onClick={onRetryWorker} className="mt-5 w-full rounded-xl bg-amber-600 px-5 py-3 font-bold text-white shadow-sm hover:bg-amber-700">← Find another available worker</button></div>}
 {(booking?.status === 'rejected' || booking?.status === 'customer-rejected') && <div className="mt-6 rounded-3xl border-2 border-orange-200 bg-orange-50 p-6"><p className="text-xs font-bold uppercase tracking-widest text-orange-700">{booking.status === 'rejected' ? 'Worker declined this request' : 'Quote was rejected'}</p><h2 className="mt-1 text-2xl font-bold text-slate-900">Choose another worker</h2><p className="mt-2 leading-6 text-slate-600">No payment was taken for this request. You can find another available professional.</p><button type="button" onClick={onRetryWorker} className="mt-5 w-full rounded-xl bg-amber-600 px-5 py-3 font-bold text-white">← Find another available worker</button></div>}
