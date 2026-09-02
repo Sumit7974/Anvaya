@@ -1,28 +1,31 @@
 import { useState } from 'react';
 import { useLanguage } from './LanguageContext';
 
-function LanguageSwitcher() {
-  const { language, setLanguage } = useLanguage();
+function LanguageSwitcher({ language: languageProp, onLanguageChange }) {
+  const global = useLanguage();
+  const language = languageProp ?? global.language;
+  const changeLanguage = onLanguageChange ?? global.setLanguage;
   const [open, setOpen] = useState(false);
+
   const languages = [
     { code: 'en', label: 'English', short: 'EN', flag: '🇬🇧' },
     { code: 'hi', label: 'हिन्दी', short: 'हि', flag: '🇮🇳' },
   ];
-  const current = languages.find(item => item.code === language) || languages[0];
+  const currentLanguage = languages.find((item) => item.code === language) || languages[0];
+
   return (
-    <div className="relative">
-      <button type="button" onClick={() => setOpen(value => !value)} className="flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:border-amber-400 hover:text-amber-700" aria-haspopup="menu" aria-expanded={open}>
-        <span>{current.flag}</span><span>{current.short}</span><span aria-hidden="true">⌄</span>
+    <div className="relative z-[70]">
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-haspopup="menu" aria-expanded={open}
+        className="flex items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-amber-400 hover:text-amber-700">
+        <span>{currentLanguage.flag}</span><span>{currentLanguage.short}</span>
+        <svg className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" /></svg>
       </button>
-      {open && <>
-        <button type="button" aria-label="Close language menu" onClick={() => setOpen(false)} className="fixed inset-0 z-40 cursor-default" />
-        <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-2xl border border-amber-100 bg-white p-2 shadow-xl" role="menu">
-          <p className="px-3 py-2 text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">Select language</p>
-          {languages.map(item => <button key={item.code} type="button" role="menuitem" onClick={() => { setLanguage(item.code); setOpen(false); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${item.code === language ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-50'}`}>
-            <span>{item.flag}</span><span className="flex-1 text-sm font-bold">{item.label}</span>{item.code === language && <span>✓</span>}
-          </button>)}
-        </div>
-      </>}
+      {open && <div className="absolute right-0 top-full mt-2 w-44 rounded-2xl border border-amber-100 bg-white p-2 shadow-xl" role="menu">
+        {languages.map((item) => <button key={item.code} type="button" role="menuitem" onClick={() => { changeLanguage(item.code); setOpen(false); }}
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left ${item.code === language ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+          <span className="text-lg">{item.flag}</span><span className="flex-1 text-sm font-bold">{item.label}</span>{item.code === language && <span>✓</span>}
+        </button>)}
+      </div>}
     </div>
   );
 }
