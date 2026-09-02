@@ -133,23 +133,49 @@ const uploadVerificationDoc = async (req, res) => {
   }
 };
 
+const SERVICE_MATCHES = [
+  { service: 'plumber', keywords: ['plumber', 'plumbing', 'pipe', 'leak', 'leaking', 'tap', 'faucet', 'drain', 'toilet', 'water', 'tank', 'flush', 'washbasin', 'sink'] },
+  { service: 'electrician', keywords: ['electrician', 'electrical', 'wiring', 'wire', 'switch', 'socket', 'plug', 'fan', 'light', 'bulb', 'voltage', 'fuse', 'mcb', 'power', 'current', 'spark', 'sparking', 'fridge', 'refrigerator', 'ac', 'a/c', 'air conditioner', 'air conditioning', 'cooler', 'geyser', 'inverter', 'stabilizer', 'motor'] },
+  { service: 'painter', keywords: ['painter', 'painting', 'paint', 'wall paint', 'wall', 'ceiling', 'colour', 'color', 'whitewash', 'putty', 'distemper', 'texture'] },
+  { service: 'carpenter', keywords: ['carpenter', 'carpentry', 'wood', 'door', 'furniture', 'cabinet', 'table', 'chair', 'shelf', 'bed', 'almirah', 'wardrobe', 'hinge', 'drawer'] },
+  { service: 'mason', keywords: ['mason', 'masonry', 'brick', 'cement', 'tile', 'floor', 'plaster', 'concrete', 'construction', 'crack'] }
+];
+
+const SPECIALTY_MATCHES = {
+  ac: ['ac', 'a/c', 'air conditioner', 'air conditioning', 'airconditioning', 'split ac', 'window ac', 'cooling', 'compressor', 'refrigerant', 'gas charging'],
+  refrigerator: ['fridge', 'refrigerator', 'freezer', 'cooling'],
+  geyser: ['geyser', 'water heater'],
+  inverter: ['inverter', 'ups', 'battery backup'],
+  fan: ['fan', 'ceiling fan', 'exhaust fan'],
+  light: ['light', 'bulb', 'tube light', 'led']
+};
+
+const findMatches = (text, keywords) => keywords.filter(keyword => text.includes(keyword));
+
 const matchService = async (req, res) => {
   try {
     const { problem } = req.body || {};
     if (!problem || typeof problem !== 'string' || !problem.trim()) return res.status(400).json({ message: 'Problem description is required' });
     const text = problem.toLowerCase().slice(0, 2000);
-    const serviceKeywords = {
-      plumber: ['tap', 'pipe', 'water', 'leak', 'leaking', 'faucet', 'drain', 'toilet', 'plumbing'],
-      electrician: ['switch', 'wire', 'wiring', 'electric', 'electricity', 'fan', 'light', 'socket', 'voltage', 'spark', 'fridge', 'refrigerator'],
-      painter: ['paint', 'painting', 'wall', 'colour', 'color', 'whitewash'],
-      carpenter: ['door', 'furniture', 'wood', 'table', 'chair', 'cabinet', 'carpenter'],
-      mason: ['brick', 'cement', 'concrete', 'wall crack', 'masonry', 'construction']
-    };
 
-    for (const [service, keywords] of Object.entries(serviceKeywords)) {
-      if (keywords.some(keyword => text.includes(keyword))) return res.status(200).json({ matched: true, serviceTag: service });
+    let best = null;
+    let bestScore = 0;
+    for (const rule of SERVICE_MATCHES) {
+      const matches = findMatches(text, rule.keywords);
+      if (matches.length > bestScore) {
+        bestScore = matches.length;
+        best = { serviceTag: rule.service, matches };
+      }
     }
-    return res.status(200).json({ matched: false, serviceTag: null, message: 'Could not determine the required service' });
+
+    const specialty = Object.entries(SPECIALTY_MATCHES).find(([, keywords]) => keywords.some(keyword => text.includes(keyword)));
+    return res.status(200).json({
+      matched: Boolean(best),
+      serviceTag: best?.serviceTag || null,
+      confidence: best ? Number(Math.min(0.99, 0.55 + bestScore * 0.12).toFixed(2)) : 0,
+      matchedKeywords: best?.matches || [],
+      specialty: specialty?.[0] || null
+    });
   } catch (error) {
     console.error('Match service error:', error);
     return res.status(500).json({ message: 'Server error' });
