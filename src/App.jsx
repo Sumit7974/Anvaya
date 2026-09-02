@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { clearAuth, getStoredUser } from './api/client';
 import RoleSelect from './RoleSelect';
 import Login from './Login';
 import Signup from './Signup';
@@ -19,6 +20,25 @@ import ProjectAssigned from './projectAssigned';
 import WorkProcessStarted from './WorkProcessStarted';
 import PaymentSuccess from './PaymentSuccess';
 
+const PAGE_ROLES = {
+  translationVoice: 'customer',
+  customerBooking: 'customer',
+  workerProcess: 'customer',
+  customerPayment: 'customer',
+  paymentSuccess: 'customer',
+  ratingSubmission: 'customer',
+  complaintSubmission: 'customer',
+  complaintSuccess: 'customer',
+  workerDashboard: 'worker',
+  contractorDashboard: 'contractor',
+  createProject: 'contractor',
+  workerSelection: 'contractor',
+  projectDetails: 'contractor',
+  projectAssigned: 'contractor',
+  WorkProcessStarted: 'contractor',
+  adminDashboard: 'admin',
+};
+
 function App() {
   const [page, setPage] = useState('home');
   const [selectedRole, setSelectedRole] = useState('');
@@ -27,11 +47,29 @@ function App() {
   const [project, setProject] = useState(null);
   const [selectedWorkers, setSelectedWorkers] = useState([]);
 
-  const goAuth = (role, nextPage = 'login') => { setSelectedRole(role); setPage(nextPage); };
+  const goAuth = (role, nextPage = 'login') => {
+    const currentUser = getStoredUser();
+    if (currentUser?.role && currentUser.role !== role) clearAuth();
+    setSelectedRole(role);
+    setPage(nextPage);
+  };
+
   const back = () => {
     const map = { translationVoice: 'login', role: 'home', login: 'role', signup: 'login', customerBooking: 'translationVoice', workerProcess: 'customerBooking', customerPayment: 'workerProcess', paymentSuccess: 'customerPayment', ratingSubmission: 'paymentSuccess', complaintSubmission: 'workerProcess', complaintSuccess: 'home', workerDashboard: 'login', contractorDashboard: 'login', createProject: 'contractorDashboard', workerSelection: 'createProject', projectDetails: 'workerSelection', projectAssigned: 'projectDetails', WorkProcessStarted: 'contractorDashboard', adminDashboard: 'login' };
     setPage(map[page] || 'home');
   };
+
+  const requiredRole = PAGE_ROLES[page];
+  const storedUser = requiredRole ? getStoredUser() : null;
+  if (requiredRole && storedUser?.role !== requiredRole) {
+    if (storedUser?.role) clearAuth();
+    return <Login role={requiredRole} onSuccess={() => {
+      if (requiredRole === 'customer') return setPage('translationVoice');
+      if (requiredRole === 'worker') return setPage('workerDashboard');
+      if (requiredRole === 'contractor') return setPage('contractorDashboard');
+      return setPage('adminDashboard');
+    }} onSignup={() => setPage('signup')} onBack={() => setPage('role')} />;
+  }
 
   if (page === 'role') return <RoleSelect onSelect={(role) => goAuth(role, 'login')} onBack={back} />;
   if (page === 'login') return <Login role={selectedRole} onSuccess={() => { if (selectedRole === 'customer') return setPage('translationVoice'); if (selectedRole === 'worker') return setPage('workerDashboard'); if (selectedRole === 'contractor') return setPage('contractorDashboard'); return setPage('adminDashboard'); }} onSignup={() => setPage('signup')} onBack={back} />;
