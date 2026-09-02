@@ -9,7 +9,13 @@
     "dev": "nodemon src/server.js",
     "check": "node --check src/server.js && node --check src/controllers/authController.js && node --check src/controllers/bookingController.js && node --check src/controllers/paymentController.js && node --check src/controllers/workerController.js && node --check src/controllers/serviceController.js"
   },
-  "keywords": ["anvaya", "local-services", "marketplace", "workers", "bookings"],
+  "keywords": [
+    "anvaya",
+    "local-services",
+    "marketplace",
+    "workers",
+    "bookings"
+  ],
   "author": "Anvaya Team",
   "license": "ISC",
   "dependencies": {
