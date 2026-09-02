@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { clearAuth, getStoredUser, setActiveRole } from './api/client';
+import { getStoredUser, setActiveRole } from './api/client';
 import RoleSelect from './RoleSelect';
 import Login from './Login';
 import Signup from './Signup';
