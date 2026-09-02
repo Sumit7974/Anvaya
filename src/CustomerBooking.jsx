@@ -20,7 +20,13 @@ const normalizePlaceQuery = value => value.trim().replace(/\s+/g, ' ')
   .replace(/\bnew\s+delhi\b/gi, 'New Delhi');
 const detectService = text => {
   const value = String(text || '').toLowerCase();
-  const map = { electrician: ['switch', 'wire', 'wiring', 'electric', 'electricity', 'fan', 'light', 'socket', 'voltage', 'spark', 'fridge', 'refrigerator'], plumber: ['tap', 'pipe', 'water', 'leak', 'faucet', 'drain', 'toilet', 'plumbing'], carpenter: ['door', 'furniture', 'wood', 'table', 'chair', 'cabinet'], painter: ['paint', 'painting', 'colour', 'color', 'whitewash'], mason: ['brick', 'cement', 'concrete', 'masonry', 'construction'] };
+  const map = {
+    electrician: ['electrician', 'electrical', 'electric', 'electricity', 'wiring', 'wire', 'switch', 'socket', 'plug', 'fan', 'light', 'bulb', 'voltage', 'spark', 'fridge', 'refrigerator', 'ac', 'a/c', 'air conditioner', 'air conditioning', 'airconditioning', 'cooling', 'compressor', 'refrigerant', 'gas charging', 'cooler', 'geyser', 'water heater', 'inverter', 'ups', 'stabilizer', 'motor'],
+    plumber: ['plumber', 'plumbing', 'tap', 'pipe', 'water', 'leak', 'faucet', 'drain', 'toilet', 'tank', 'flush', 'sewage', 'washbasin', 'sink'],
+    carpenter: ['carpenter', 'carpentry', 'door', 'furniture', 'wood', 'table', 'chair', 'cabinet', 'shelf', 'bed', 'almirah', 'wardrobe', 'hinge', 'drawer'],
+    painter: ['painter', 'paint', 'painting', 'wall paint', 'colour', 'color', 'whitewash', 'putty', 'distemper', 'texture'],
+    mason: ['mason', 'masonry', 'brick', 'cement', 'tile', 'floor', 'plaster', 'concrete', 'construction', 'crack']
+  };
   return Object.entries(map).find(([, words]) => words.some(word => value.includes(word)))?.[0] || null;
 };
 
