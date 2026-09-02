@@ -30,37 +30,14 @@ function App() {
   const [project, setProject] = useState(null);
   const [selectedWorkers, setSelectedWorkers] = useState([]);
 
-  const navigate = (nextPage) => {
-    const role = PAGE_ROLES[nextPage];
-    if (role) setActiveRole(role);
-    setPage(nextPage);
-  };
-
-  const goAuth = (role, nextPage = 'login') => {
-    setSelectedRole(role);
-    setActiveRole(role);
-    setPage(nextPage);
-  };
-
-  const authSuccess = (role) => {
-    setActiveRole(role);
-    if (role === 'customer') return navigate('translationVoice');
-    if (role === 'worker') return navigate('workerDashboard');
-    if (role === 'contractor') return navigate('contractorDashboard');
-    return navigate('adminDashboard');
-  };
-
-  const back = () => {
-    const map = { translationVoice:'login', role:'home', login:'role', signup:'login', customerBooking:'translationVoice', workerProcess:'customerBooking', customerPayment:'workerProcess', paymentSuccess:'customerPayment', ratingSubmission:'paymentSuccess', complaintSubmission:'workerProcess', complaintSuccess:'home', workerDashboard:'login', contractorDashboard:'login', createProject:'contractorDashboard', workerSelection:'createProject', projectDetails:'workerSelection', projectAssigned:'projectDetails', WorkProcessStarted:'contractorDashboard', adminDashboard:'login' };
-    navigate(map[page] || 'home');
-  };
+  const navigate = (nextPage) => { const role = PAGE_ROLES[nextPage]; if (role) setActiveRole(role); setPage(nextPage); };
+  const goAuth = (role, nextPage = 'login') => { setSelectedRole(role); setActiveRole(role); setPage(nextPage); };
+  const authSuccess = (role) => { setActiveRole(role); if (role === 'customer') return navigate('translationVoice'); if (role === 'worker') return navigate('workerDashboard'); if (role === 'contractor') return navigate('contractorDashboard'); return navigate('adminDashboard'); };
+  const back = () => { const map = { translationVoice:'login', role:'home', login:'role', signup:'login', customerBooking:'translationVoice', workerProcess:'customerBooking', customerPayment:'workerProcess', paymentSuccess:'customerPayment', ratingSubmission:'paymentSuccess', complaintSubmission:'workerProcess', complaintSuccess:'home', workerDashboard:'login', contractorDashboard:'login', createProject:'contractorDashboard', workerSelection:'createProject', projectDetails:'workerSelection', projectAssigned:'projectDetails', WorkProcessStarted:'contractorDashboard', adminDashboard:'login' }; navigate(map[page] || 'home'); };
 
   const requiredRole = PAGE_ROLES[page];
   const storedUser = requiredRole ? getStoredUser(requiredRole) : null;
-  if (requiredRole && storedUser?.role !== requiredRole) {
-    return <Login role={requiredRole} onSuccess={() => authSuccess(requiredRole)} onSignup={() => navigate('signup')} onBack={() => navigate('role')} />;
-  }
-
+  if (requiredRole && storedUser?.role !== requiredRole) return <Login role={requiredRole} onSuccess={() => authSuccess(requiredRole)} onSignup={() => navigate('signup')} onBack={() => navigate('role')} />;
   if (page === 'role') return <RoleSelect onSelect={(role) => goAuth(role)} onBack={back} />;
   if (page === 'login') return <Login role={selectedRole} onSuccess={() => authSuccess(selectedRole)} onSignup={() => navigate('signup')} onBack={back} />;
   if (page === 'signup') return <Signup role={selectedRole} onSuccess={() => authSuccess(selectedRole)} onLogin={() => navigate('login')} onBack={back} />;
@@ -76,7 +53,7 @@ function App() {
   if (page === 'contractorDashboard') return <ContractorDashboard onBack={back} onCreateProject={() => { setProject(null); setSelectedWorkers([]); navigate('createProject'); }} />;
   if (page === 'createProject') return <CreateProject onBack={back} onNext={(nextProject) => { setProject(nextProject); setSelectedWorkers([]); navigate('workerSelection'); }} />;
   if (page === 'workerSelection') return <WorkerSelection project={project} onBack={back} onNext={(workers) => { setSelectedWorkers(workers); navigate('projectDetails'); }} />;
-  if (page === 'projectDetails') return <ProjectDetails project={project} selectedWorkers={selectedWorkers} onBack={back} onCreateProject={() => navigate('projectAssigned')} />;
+  if (page === 'projectDetails') return <ProjectDetails project={project} selectedWorkers={selectedWorkers} onBack={back} onCreateProject={(createdProject) => { setProject(createdProject); navigate('projectAssigned'); }} />;
   if (page === 'projectAssigned') return <ProjectAssigned project={project} selectedWorkers={selectedWorkers} onBack={back} onContinue={() => navigate('WorkProcessStarted')} />;
   if (page === 'WorkProcessStarted') return <WorkProcessStarted onDashboard={() => navigate('contractorDashboard')} />;
   if (page === 'adminDashboard') return <AdminDashboard onBack={back} />;
