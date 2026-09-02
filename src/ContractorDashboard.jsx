@@ -21,9 +21,12 @@ function ContractorDashboard({ onBack, onCreateProject }) {
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const timer = setTimeout(() => { void load(); }, 0);
+    return () => clearTimeout(timer);
+  }, [load]);
 
-  const updateStatus = async (status) => {
+  const updateStatus = async status => {
     if (!selected?._id) return;
     try {
       const data = await apiRequest(`/api/projects/${selected._id}/status`, { method: 'PATCH', token: getStoredToken(), body: { status } });
@@ -38,12 +41,7 @@ function ContractorDashboard({ onBack, onCreateProject }) {
 
   return (
     <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
-      <header className="sticky top-0 z-40 border-b border-amber-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <div className="flex items-center gap-3"><img src="/anvaya-logo.png" alt="Anvaya" className="h-12 w-auto"/><div className="hidden sm:block"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Contractor Dashboard</p><p className="text-sm font-semibold text-slate-600">{user?.name || 'Your workspace'}</p></div></div>
-          <div className="flex gap-2"><button type="button" onClick={onCreateProject} className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700">+ New project</button><button type="button" onClick={onBack} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 hover:border-amber-300 hover:text-amber-700">← Back</button></div>
-        </div>
-      </header>
+      <header className="sticky top-0 z-40 border-b border-amber-100 bg-white/95 backdrop-blur"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8"><div className="flex items-center gap-3"><img src="/anvaya-logo.png" alt="Anvaya" className="h-12 w-auto"/><div className="hidden sm:block"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Contractor Dashboard</p><p className="text-sm font-semibold text-slate-600">{user?.name || 'Your workspace'}</p></div></div><div className="flex gap-2"><button type="button" onClick={onCreateProject} className="rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-700">+ New project</button><button type="button" onClick={onBack} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 hover:border-amber-300 hover:text-amber-700">← Back</button></div></div></header>
       <section className="border-b border-amber-100 bg-[#FFF1E6]"><div className="mx-auto max-w-7xl px-5 py-10 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-700">Live workspace</p><h1 className="mt-3 text-4xl font-bold text-slate-900 sm:text-5xl">Manage your projects.</h1><p className="mt-3 max-w-2xl text-slate-600">Projects, worker assignments and status updates are loaded from your Anvaya account.</p></div></section>
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
         {error && <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-semibold text-red-700">{error}<button type="button" onClick={() => void load()} className="ml-3 underline">Retry</button></div>}
