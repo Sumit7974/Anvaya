@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const projectSchema = new mongoose.Schema(
   {
     contractor: { type: mongoose.Schema.Types.ObjectId, ref: 'Contractor', required: true },
-    title: { type: String, required: true },
-    description: { type: String },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, trim: true },
+    budget: { type: Number, min: 0, default: 0 },
+    deadline: { type: Date },
     workersRequired: [
       {
-        skill: { type: String, required: true },
+        skill: { type: String, required: true, trim: true, lowercase: true },
         count: { type: Number, required: true, min: 1 }
       }
     ],
