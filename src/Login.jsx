@@ -8,9 +8,12 @@ const DEMO_ACCOUNTS = {
     label: 'Customer demo'
   },
   worker: {
-    email: 'demo.worker@anvaya.test',
+    email: 'demo.worker.001@anvaya.test',
     password: 'Demo@12345',
-    label: 'Worker demo'
+    label: 'Rakesh Tomar · Electrician',
+    name: 'Rakesh Tomar',
+    skill: 'Electrician',
+    city: 'Gwalior'
   },
   contractor: {
     email: 'demo.contractor@anvaya.test',
@@ -62,7 +65,7 @@ function Login({ role, onSuccess, onSignup, onBack }) {
         <section className="flex items-center justify-center px-7 py-12 sm:px-12"><form onSubmit={handleSubmit} className="w-full max-w-md"><div className="mb-8"><p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-700">Sign in</p><h2 className="mt-2 text-3xl font-bold text-slate-900">{roleName} account</h2><p className="mt-2 text-sm leading-6 text-slate-500">Enter your account details to continue.</p></div>
           <label className="block"><span className="mb-2 block text-sm font-semibold">Email address</span><input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder="Enter your email address" autoComplete="email" className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100" /></label>
           <label className="mt-5 block"><span className="mb-2 block text-sm font-semibold">Password</span><div className="relative"><input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="Enter your password" autoComplete="current-password" className="w-full rounded-xl border border-slate-200 bg-[#FFFDFC] px-4 py-3.5 pr-16 outline-none focus:border-amber-400 focus:ring-4 focus:ring-amber-100" /><button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500 hover:text-amber-700">{showPassword ? 'Hide' : 'Show'}</button></div></label>
-          {demo && <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-slate-900">Demo login</p><p className="mt-1 text-xs leading-5 text-slate-600">Use this account for the SIH walkthrough.</p></div><button type="button" onClick={useDemo} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-sm hover:bg-blue-100">Use demo</button></div><div className="mt-3 grid gap-2 text-xs text-slate-700"><div className="rounded-lg bg-white px-3 py-2"><span className="font-semibold">Email:</span> {demo.email}</div><div className="rounded-lg bg-white px-3 py-2"><span className="font-semibold">Password:</span> {demo.password}</div></div></section>}
+          {demo && <section className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/70 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-slate-900">Demo login</p><p className="mt-1 text-xs leading-5 text-slate-600">Use this account for the SIH walkthrough.</p></div><button type="button" onClick={useDemo} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-sm hover:bg-blue-100">Use demo</button></div><div className="mt-3 grid gap-2 text-xs text-slate-700"><div className="rounded-lg bg-white px-3 py-2"><span className="font-semibold">Email:</span> {demo.email}</div><div className="rounded-lg bg-white px-3 py-2"><span className="font-semibold">Password:</span> {demo.password}</div>{demo.name && <div className="rounded-lg bg-white px-3 py-2"><span className="font-semibold">Demo worker to book:</span> {demo.name} · {demo.skill} · {demo.city}</div>}</div></section>}
           {error && <div className="mt-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
           <button disabled={loading} type="submit" className="mt-6 w-full rounded-xl bg-amber-600 px-5 py-4 font-bold text-white shadow-lg shadow-amber-600/20 hover:bg-amber-700 disabled:opacity-60">{loading ? 'Signing in…' : 'Login to Anvaya →'}</button>
           {role !== 'admin' && <div className="my-6 flex items-center gap-3"><div className="h-px flex-1 bg-slate-100" /><span className="text-xs font-semibold text-slate-400">NEW TO ANVAYA?</span><div className="h-px flex-1 bg-slate-100" /></div>}
