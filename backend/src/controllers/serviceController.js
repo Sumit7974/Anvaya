@@ -51,7 +51,7 @@ const SERVICE_RULES = [
 
 const analyzeService = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text } = req.body || {};
 
     if (typeof text !== 'string' || !text.trim()) {
       return res.status(400).json({

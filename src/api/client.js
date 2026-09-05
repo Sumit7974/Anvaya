@@ -16,9 +16,21 @@ async function request(path, options = {}) {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const config = { method, headers: requestHeaders };
   if (body !== undefined) config.body = isFormData ? body : JSON.stringify(body);
-  const response = await fetch(`${API_BASE_URL}${cleanPath}`, config);
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${cleanPath}`, config);
+  } catch {
+    const error = new Error("Unable to reach Anvaya. Please check your internet connection and try again.");
+    error.status = 0;
+    throw error;
+  }
   const contentType = response.headers.get("content-type") || "";
-  const data = contentType.includes("application/json") ? await response.json() : await response.text();
+  let data;
+  try {
+    data = contentType.includes("application/json") ? await response.json() : await response.text();
+  } catch {
+    data = null;
+  }
   if (!response.ok) {
     const error = new Error(typeof data === "object" && data?.message ? data.message : "Request failed. Please try again.");
     error.status = response.status;

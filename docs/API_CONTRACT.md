@@ -62,10 +62,11 @@ GET `/api/admin/workers/pending` (admin)
 PATCH `/api/admin/workers/:id/verify` (admin) `{ status: 'verified' | 'rejected' }`
 
 ## Projects (contractor)
-POST `/api/projects`
+POST `/api/projects` `{ title, description?, workersRequired, workerIds, location, budget?, deadline? }` → creates the project and assigns all selected workers in one validated operation
 GET `/api/projects/my`
 GET `/api/projects/:projectId`
 GET `/api/projects/workers/find?skill&longitude&latitude&radius`
 POST `/api/projects/:projectId/workers` `{ workerId }`
+POST `/api/projects/:projectId/workers/bulk` `{ workerIds }` → validates and assigns all workers together
 PATCH `/api/projects/:projectId/workers/:workerId` `{ status }`
 PATCH `/api/projects/:projectId/status` `{ status }`

@@ -16,12 +16,15 @@ function ProjectDetails({ project, selectedWorkers, onBack, onCreateProject }) {
       if (!Array.isArray(project?.coordinates) || project.coordinates.length !== 2) throw new Error("Project coordinates are missing. Please go back and allow location access.");
       if (!selectedWorkers?.length) throw new Error("Select at least one worker before creating the project.");
 
+      const workerIds = selectedWorkers.map((worker) => worker?._id || worker?.id);
+      if (workerIds.some((workerId) => !workerId)) throw new Error("A selected worker is missing a valid ID.");
       const body = {
         title: project.name.trim(),
         description: project.description?.trim() || "",
         budget: Number(project.budget) || 0,
         deadline: project.deadline ? new Date(`${project.deadline}T23:59:59.000Z`).toISOString() : undefined,
         workersRequired: [{ skill: service, count: selectedWorkers.length }],
+        workerIds,
         location: { type: "Point", coordinates: project.coordinates.map(Number) },
       };
 
@@ -29,17 +32,10 @@ function ProjectDetails({ project, selectedWorkers, onBack, onCreateProject }) {
       const createdProject = data?.project;
       if (!createdProject?._id) throw new Error("Project was not created. Please try again.");
 
-      for (const worker of selectedWorkers) {
-        const workerId = worker?._id || worker?.id;
-        if (!workerId) throw new Error("A selected worker is missing a valid ID.");
-        await apiRequest(`/api/projects/${createdProject._id}/workers`, {
-          method: "POST",
-          token,
-          body: { workerId },
-        });
+      if (createdProject.assignedWorkers?.length !== workerIds.length) {
+        throw new Error("The project was created, but worker assignment was not completed. Please contact support before retrying.");
       }
-
-      onCreateProject?.({ ...createdProject, assignedWorkers: selectedWorkers.map((worker) => ({ worker })) });
+      onCreateProject?.(createdProject);
     } catch (e) {
       setError(e.message || "Unable to create and assign the project. Please try again.");
     } finally {

@@ -6,6 +6,7 @@ const {
   getAllWorkers,
   getNearbyWorkers,
   uploadVerificationDoc,
+  getVerificationDocument,
   matchService,
   getProfile
 } = require('../controllers/workerController');
@@ -38,6 +39,13 @@ router.post(
   authorize('worker'),
   upload.single('document'),
   uploadVerificationDoc
+);
+
+router.get(
+  '/verification/document/:filename',
+  protect,
+  authorize('worker', 'admin', 'superadmin'),
+  getVerificationDocument
 );
 
 module.exports = router;

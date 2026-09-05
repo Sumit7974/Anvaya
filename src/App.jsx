@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getStoredUser, setActiveRole } from './api/client';
+import { apiRequest, getStoredUser, getStoredToken, setActiveRole } from './api/client';
 import RoleSelect from './RoleSelect';
 import Login from './Login';
 import Signup from './Signup';
@@ -37,7 +37,7 @@ function App() {
 
   const requiredRole = PAGE_ROLES[page];
   const storedUser = requiredRole ? getStoredUser(requiredRole) : null;
-  if (requiredRole && storedUser?.role !== requiredRole) return <Login role={requiredRole} onSuccess={() => authSuccess(requiredRole)} onSignup={() => navigate('signup')} onBack={() => navigate('role')} />;
+  if (requiredRole && storedUser?.role !== requiredRole) return <Login role={requiredRole} onSuccess={() => authSuccess(requiredRole)} onSignup={() => { setSelectedRole(requiredRole); setActiveRole(requiredRole); setPage('signup'); }} onBack={() => navigate('role')} />;
   if (page === 'role') return <RoleSelect onSelect={(role) => goAuth(role)} onBack={back} />;
   if (page === 'login') return <Login role={selectedRole} onSuccess={() => authSuccess(selectedRole)} onSignup={() => navigate('signup')} onBack={back} />;
   if (page === 'signup') return <Signup role={selectedRole} onSuccess={() => authSuccess(selectedRole)} onLogin={() => navigate('login')} onBack={back} />;
@@ -54,7 +54,7 @@ function App() {
   if (page === 'createProject') return <CreateProject onBack={back} onNext={(nextProject) => { setProject(nextProject); setSelectedWorkers([]); navigate('workerSelection'); }} />;
   if (page === 'workerSelection') return <WorkerSelection project={project} onBack={back} onNext={(workers) => { setSelectedWorkers(workers); navigate('projectDetails'); }} />;
   if (page === 'projectDetails') return <ProjectDetails project={project} selectedWorkers={selectedWorkers} onBack={back} onCreateProject={(createdProject) => { setProject(createdProject); navigate('projectAssigned'); }} />;
-  if (page === 'projectAssigned') return <ProjectAssigned project={project} selectedWorkers={selectedWorkers} onBack={back} onContinue={() => navigate('WorkProcessStarted')} />;
+  if (page === 'projectAssigned') return <ProjectAssigned project={project} selectedWorkers={selectedWorkers} onBack={back} onContinue={async () => { if (!project?._id) throw new Error('Project details are missing. Please return to the dashboard.'); await apiRequest(`/api/projects/${project._id}/status`, { method: 'PATCH', token: getStoredToken('contractor'), body: { status: 'in-progress' } }); setProject(current => ({ ...current, status: 'in-progress' })); navigate('WorkProcessStarted'); }} />;
   if (page === 'WorkProcessStarted') return <WorkProcessStarted onDashboard={() => navigate('contractorDashboard')} />;
   if (page === 'adminDashboard') return <AdminDashboard onBack={back} />;
 

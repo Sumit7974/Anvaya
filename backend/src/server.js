@@ -5,7 +5,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const path = require('path');
 
 const connectDB = require('./config/db');
 
@@ -62,12 +61,6 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
-  dotfiles: 'deny',
-  index: false,
-  maxAge: '1h'
-}));
-
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'anvaya-api' });
 });
@@ -88,7 +81,13 @@ app.use((req, res) => {
 
 app.use((err, req, res, _next) => {
   console.error(err.stack || err);
-  const status = Number.isInteger(err.statusCode) ? err.statusCode : 500;
+  const status = Number.isInteger(err.statusCode)
+    ? err.statusCode
+    : err.name === 'MulterError' || String(err.code || '').startsWith('LIMIT_')
+      ? 400
+      : err.name === 'ValidationError' || err.name === 'CastError'
+        ? 400
+        : 500;
   res.status(status).json({
     message: status >= 500 ? 'Server error' : (err.message || 'Request failed')
   });

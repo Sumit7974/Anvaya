@@ -1,6 +1,10 @@
 const Worker = require('../models/Worker');
+const Booking = require('../models/Booking');
+const path = require('path');
 
-const safeWorkerFields = '-passwordHash -phone';
+const verificationUploadDir = path.join(__dirname, '../../uploads/verification');
+
+const safeWorkerFields = '-passwordHash -phone -verification.documents -verification.verifiedBy';
 const normalizeSkills = skills => Array.isArray(skills)
   ? [...new Set(skills.map(skill => String(skill).trim().toLowerCase()).filter(Boolean))].slice(0, 20)
   : [];
@@ -57,6 +61,13 @@ const toggleAvailability = async (req, res) => {
     const worker = await Worker.findById(req.user.id);
     if (!worker) return res.status(404).json({ message: 'Worker not found' });
     if (!worker.isActive || worker.verification.status !== 'verified') return res.status(403).json({ message: 'Only an active, verified worker can change availability' });
+    if (!worker.isAvailable) {
+      const holdingBooking = await Booking.exists({
+        worker: worker._id,
+        status: { $in: ['requested', 'accepted', 'quote-pending', 'in-progress', 'completion-pending'] }
+      });
+      if (holdingBooking) return res.status(409).json({ message: 'Finish or release your current booking before becoming available again' });
+    }
     worker.isAvailable = !worker.isAvailable;
     await worker.save();
     return res.status(200).json({ message: `You are now ${worker.isAvailable ? 'available' : 'unavailable'} for jobs`, isAvailable: worker.isAvailable });
@@ -133,6 +144,23 @@ const uploadVerificationDoc = async (req, res) => {
   }
 };
 
+const getVerificationDocument = async (req, res) => {
+  try {
+    const filename = path.basename(String(req.params.filename || ''));
+    if (!filename || filename !== req.params.filename) return res.status(400).json({ message: 'Invalid document name' });
+    const documentPath = `/uploads/verification/${filename}`;
+    const worker = await Worker.findOne({ 'verification.documents': documentPath }).select('_id');
+    if (!worker) return res.status(404).json({ message: 'Document not found' });
+    if (req.user.role === 'worker' && String(worker._id) !== String(req.user.id)) {
+      return res.status(403).json({ message: 'You cannot access this document' });
+    }
+    return res.sendFile(filename, { root: verificationUploadDir });
+  } catch (error) {
+    console.error('Get verification document error:', error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
 const SERVICE_MATCHES = [
   { service: 'plumber', keywords: ['plumber', 'plumbing', 'pipe', 'leak', 'leaking', 'tap', 'faucet', 'drain', 'toilet', 'water', 'tank', 'flush', 'washbasin', 'sink'] },
   { service: 'electrician', keywords: ['electrician', 'electrical', 'wiring', 'wire', 'switch', 'socket', 'plug', 'fan', 'light', 'bulb', 'voltage', 'fuse', 'mcb', 'power', 'current', 'spark', 'sparking', 'fridge', 'refrigerator', 'ac', 'a/c', 'air conditioner', 'air conditioning', 'cooler', 'geyser', 'inverter', 'stabilizer', 'motor'] },
@@ -182,4 +210,4 @@ const matchService = async (req, res) => {
   }
 };
 
-module.exports = { updateProfile, getProfile, toggleAvailability, getAllWorkers, getNearbyWorkers, uploadVerificationDoc, matchService };
+module.exports = { updateProfile, getProfile, toggleAvailability, getAllWorkers, getNearbyWorkers, uploadVerificationDoc, getVerificationDocument, matchService };

@@ -19,6 +19,7 @@ const {
   protect,
   authorize
 } = require('../middleware/authMiddleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 const router =
   express.Router();
@@ -54,6 +55,7 @@ router.get(
 router.patch(
   '/:bookingId/accept',
   protect,
+  validateObjectId('bookingId'),
   authorize('worker'),
   acceptBooking
 );
@@ -61,6 +63,7 @@ router.patch(
 router.patch(
   '/:bookingId/reject',
   protect,
+  validateObjectId('bookingId'),
   authorize('worker'),
   rejectBooking
 );
@@ -68,6 +71,7 @@ router.patch(
 router.patch(
   '/:bookingId/start',
   protect,
+  validateObjectId('bookingId'),
   authorize('worker'),
   startBooking
 );
@@ -75,6 +79,7 @@ router.patch(
 router.patch(
   '/:bookingId/request-completion',
   protect,
+  validateObjectId('bookingId'),
   authorize('worker'),
   requestCompletion
 );
@@ -82,6 +87,7 @@ router.patch(
 router.patch(
   '/:bookingId/confirm-completion',
   protect,
+  validateObjectId('bookingId'),
   authorize('customer'),
   confirmCompletion
 );
@@ -89,6 +95,7 @@ router.patch(
 router.patch(
   '/:bookingId/dispute-completion',
   protect,
+  validateObjectId('bookingId'),
   authorize('customer'),
   disputeCompletion
 );
@@ -96,6 +103,7 @@ router.patch(
 router.patch(
   '/:bookingId/cancel',
   protect,
+  validateObjectId('bookingId'),
   authorize('customer'),
   cancelBooking
 );
@@ -103,6 +111,7 @@ router.patch(
 router.post(
   '/:bookingId/rating',
   protect,
+  validateObjectId('bookingId'),
   authorize('customer'),
   rateBooking
 );

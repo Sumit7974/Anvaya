@@ -1,11 +1,12 @@
 const Complaint = require('../models/Complaint');
 const Booking = require('../models/Booking');
+const mongoose = require('mongoose');
 
 const createComplaint = async (req, res) => {
   try {
-    const { bookingId, category, description } = req.body;
+    const { bookingId, category, description } = req.body || {};
 
-    if (!bookingId || typeof description !== 'string' || !description.trim()) {
+    if (!bookingId || !mongoose.isValidObjectId(bookingId) || typeof description !== 'string' || !description.trim()) {
       return res.status(400).json({ message: 'bookingId and complaint description are required' });
     }
 
@@ -21,6 +22,14 @@ const createComplaint = async (req, res) => {
     if (!booking.worker) {
       return res.status(400).json({ message: 'This booking has no worker to report against' });
     }
+
+    const existingComplaint = await Complaint.findOne({
+      booking: booking._id,
+      raisedByModel: 'Customer',
+      raisedBy: req.user.id,
+      status: { $in: ['open', 'under-review'] }
+    }).select('_id');
+    if (existingComplaint) return res.status(409).json({ message: 'You already have an open complaint for this booking' });
 
     const complaint = await Complaint.create({
       raisedByModel: 'Customer',
