@@ -6,7 +6,6 @@ const labels = { requested: 'Request Sent', accepted: 'Accepted', 'quote-pending
 
 function resolveStepIndex(booking) {
   if (!booking) return -1;
-  if (booking.status === 'accepted' && booking.quote?.customerRespondedAt) return steps.indexOf('quote-pending');
   return steps.indexOf(booking.status);
 }
 
@@ -15,7 +14,7 @@ function WorkerProcess({ worker, bookingId, onBack, onProceedToPayment, onCompla
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
   const load = useCallback(async () => {
     try {

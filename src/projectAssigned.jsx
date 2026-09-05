@@ -1,6 +1,21 @@
 
 
+import { useState } from 'react';
+
 function ProjectAssigned({ project, selectedWorkers = [], onBack, onContinue }) {
+  const [starting, setStarting] = useState(false);
+  const [error, setError] = useState('');
+  const handleContinue = async () => {
+    try {
+      setStarting(true);
+      setError('');
+      await onContinue?.();
+    } catch (requestError) {
+      setError(requestError.message || 'Unable to start the project. Please try again.');
+    } finally {
+      setStarting(false);
+    }
+  };
   return (
     <main className="min-h-screen bg-[#FFF8F3] text-slate-800">
 
@@ -185,13 +200,15 @@ function ProjectAssigned({ project, selectedWorkers = [], onBack, onContinue }) 
 
                 <button
                   type="button"
-                  onClick={onContinue}
+                  onClick={() => void handleContinue()}
+                  disabled={starting}
                   className="rounded-xl bg-amber-600 px-6 py-3.5 font-bold text-white shadow-md transition duration-300 hover:-translate-y-0.5 hover:bg-amber-700 hover:shadow-lg"
                 >
-                  Start Work Process →
+                  {starting ? 'Starting…' : 'Start Work Process →'}
                 </button>
 
               </div>
+              {error && <p className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
 
             </div>
 

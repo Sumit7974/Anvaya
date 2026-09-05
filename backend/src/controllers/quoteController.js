@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Worker = require('../models/Worker');
+const { releaseWorkerIfIdle } = require('../utils/workerAvailability');
 
 const sendQuote = async (req, res) => {
   try {
@@ -14,7 +15,8 @@ const sendQuote = async (req, res) => {
     const booking = await Booking.findOne({ _id: bookingId, worker: req.user.id, status: 'accepted' });
     if (!booking) return res.status(404).json({ message: 'Accepted booking not found' });
 
-    booking.quote = { amount: Math.round(numericAmount), note: String(note).trim().slice(0, 500), proposedAt: new Date() };
+    const normalizedNote = typeof note === 'string' ? note.trim().slice(0, 500) : '';
+    booking.quote = { amount: Math.round(numericAmount), note: normalizedNote, proposedAt: new Date() };
     booking.price = Math.round(numericAmount);
     booking.status = 'quote-pending';
     await booking.save();
@@ -50,7 +52,7 @@ const rejectQuote = async (req, res) => {
     booking.rejectionReason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : 'Customer rejected the worker quote';
     booking.quote.customerRespondedAt = new Date();
     await booking.save();
-    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
+    if (booking.worker) await releaseWorkerIfIdle(booking.worker);
     return res.status(200).json({ message: 'Quote rejected', booking });
   } catch (error) {
     console.error('Reject quote error:', error);

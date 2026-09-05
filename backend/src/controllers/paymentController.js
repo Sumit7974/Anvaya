@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 
 const getRazorpay = () => {
@@ -12,7 +13,7 @@ const getRazorpay = () => {
 const createOrder = async (req, res) => {
   try {
     const { bookingId } = req.body || {};
-    if (!bookingId) return res.status(400).json({ message: 'bookingId is required' });
+    if (!bookingId || !mongoose.isValidObjectId(bookingId)) return res.status(400).json({ message: 'A valid bookingId is required' });
 
     const booking = await Booking.findOne({ _id: bookingId, customer: req.user.id }).populate('worker', 'name');
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
@@ -41,11 +42,14 @@ const createOrder = async (req, res) => {
 const verifyPayment = async (req, res) => {
   try {
     const { bookingId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body || {};
-    if (!bookingId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ message: 'Missing payment verification fields' });
+    if (!bookingId || !mongoose.isValidObjectId(bookingId) || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) return res.status(400).json({ message: 'Missing valid payment verification fields' });
 
     const booking = await Booking.findOne({ _id: bookingId, customer: req.user.id });
     if (!booking || !booking.payment?.orderId || booking.payment.orderId !== razorpay_order_id) return res.status(404).json({ message: 'Booking/order mismatch' });
     if (booking.payment.status === 'paid') return res.status(200).json({ message: 'Payment already verified', payment: booking.payment });
+    if (booking.status !== 'completed' || !booking.customerConfirmedAt || !Number.isFinite(Number(booking.price)) || booking.price <= 0) {
+      return res.status(400).json({ message: 'Payment is only available after customer-confirmed completion' });
+    }
 
     const secret = process.env.RAZORPAY_KEY_SECRET;
     if (!secret) return res.status(500).json({ message: 'Payment gateway is not configured' });

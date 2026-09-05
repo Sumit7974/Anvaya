@@ -10,6 +10,7 @@ const {
   protect,
   authorize
 } = require('../middleware/authMiddleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.get(
 router.patch(
   '/workers/:workerId/verify',
   protect,
+  validateObjectId('workerId'),
   authorize('admin', 'superadmin'),
   verifyWorker
 );
@@ -36,6 +38,7 @@ router.patch(
 router.patch(
   '/workers/:workerId/status',
   protect,
+  validateObjectId('workerId'),
   authorize('admin', 'superadmin'),
   updateWorkerStatus
 );

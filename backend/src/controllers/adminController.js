@@ -29,7 +29,7 @@ const getPendingWorkers = async (req, res) => {
 const verifyWorker = async (req, res) => {
   try {
     const { workerId } = req.params;
-    const { status } = req.body;
+    const { status } = req.body || {};
 
     if (!['verified', 'rejected'].includes(status)) {
       return res.status(400).json({
@@ -84,7 +84,7 @@ const verifyWorker = async (req, res) => {
 const updateWorkerStatus = async (req, res) => {
   try {
     const { workerId } = req.params;
-    const { isActive } = req.body;
+    const { isActive } = req.body || {};
 
     if (typeof isActive !== 'boolean') {
       return res.status(400).json({

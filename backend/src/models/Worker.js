@@ -10,7 +10,18 @@ const workerSchema = new mongoose.Schema(
     isAvailable: { type: Boolean, default: false },
     location: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number], default: [0, 0] }
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+        validate: {
+          validator: value => Array.isArray(value)
+            && value.length === 2
+            && value.every(Number.isFinite)
+            && value[0] >= -180 && value[0] <= 180
+            && value[1] >= -90 && value[1] <= 90,
+          message: 'Worker location must contain valid [longitude, latitude] coordinates'
+        }
+      }
     },
     verification: {
       status: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },

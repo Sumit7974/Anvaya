@@ -1,5 +1,7 @@
 const Booking = require('../models/Booking');
 const Worker = require('../models/Worker');
+const mongoose = require('mongoose');
+const { releaseWorkerIfIdle } = require('../utils/workerAvailability');
 
 const MAX_SERVICE_RADIUS_KM = 15;
 const RESPONSE_WINDOW_MS = 2 * 60 * 1000;
@@ -18,7 +20,7 @@ const expireTimedOutBookings = async () => {
   if (!expired.length) return 0;
   await Booking.updateMany({ _id: { $in: expired.map(b => b._id) }, status: 'requested' }, { $set: { status: 'expired', expiredAt: now, rejectionReason: 'Worker did not respond within the response window' } });
   const workerIds = [...new Set(expired.map(b => String(b.worker)).filter(Boolean))];
-  if (workerIds.length) await Worker.updateMany({ _id: { $in: workerIds } }, { $set: { isAvailable: true } });
+  for (const workerId of workerIds) await releaseWorkerIfIdle(workerId);
   return expired.length;
 };
 
@@ -28,6 +30,7 @@ const createBooking = async (req, res) => {
     const point = normalizePoint(location);
     if (typeof problemDescription !== 'string' || problemDescription.trim().length < 10) return res.status(400).json({ message: 'Please describe the problem in at least 10 characters' });
     if (!point) return res.status(400).json({ message: 'A valid service location is required' });
+    if (workerId && !mongoose.isValidObjectId(workerId)) return res.status(400).json({ message: 'A valid workerId is required' });
 
     const normalizedService = typeof serviceTag === 'string' ? serviceTag.trim().toLowerCase() : '';
     if (normalizedService && !VALID_SERVICES.has(normalizedService)) return res.status(400).json({ message: 'Invalid service type' });
@@ -47,7 +50,7 @@ const createBooking = async (req, res) => {
       const booking = await Booking.create(bookingData);
       return res.status(201).json({ message: 'Booking request created successfully', booking });
     } catch (createError) {
-      if (bookingData.worker) await Worker.updateOne({ _id: bookingData.worker }, { $set: { isAvailable: true } });
+      if (bookingData.worker) await releaseWorkerIfIdle(bookingData.worker);
       throw createError;
     }
   } catch (error) {
@@ -101,7 +104,7 @@ const rejectBooking = async (req, res) => {
     const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : '';
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, worker: req.user.id, status: 'requested' }, { $set: { status: 'rejected', rejectedAt: new Date(), rejectionReason: reason } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or already processed' });
-    await Worker.updateOne({ _id: req.user.id }, { $set: { isAvailable: true } });
+    await releaseWorkerIfIdle(req.user.id);
     return res.status(200).json({ message: 'Booking rejected successfully', booking });
   } catch (error) { console.error('Reject booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -127,7 +130,7 @@ const confirmCompletion = async (req, res) => {
     const now = new Date();
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: 'completion-pending' }, { $set: { status: 'completed', customerConfirmedAt: now, completedAt: now } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or is not waiting for confirmation' });
-    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
+    if (booking.worker) await releaseWorkerIfIdle(booking.worker);
     return res.status(200).json({ message: 'Work confirmed successfully', booking });
   } catch (error) { console.error('Confirm completion error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -136,7 +139,7 @@ const disputeCompletion = async (req, res) => {
   try {
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: 'completion-pending' }, { $set: { status: 'disputed', disputedAt: new Date() } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or is not waiting for confirmation' });
-    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
+    if (booking.worker) await releaseWorkerIfIdle(booking.worker);
     return res.status(200).json({ message: 'Completion disputed. Payment remains locked.', booking });
   } catch (error) { console.error('Dispute completion error:', error); return res.status(500).json({ message: 'Server error' }); }
 };
@@ -145,7 +148,7 @@ const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findOneAndUpdate({ _id: req.params.bookingId, customer: req.user.id, status: { $in: ['requested', 'accepted'] } }, { $set: { status: 'cancelled' } }, { new: true });
     if (!booking) return res.status(404).json({ message: 'Booking not found or cannot be cancelled' });
-    if (booking.worker) await Worker.updateOne({ _id: booking.worker }, { $set: { isAvailable: true } });
+    if (booking.worker) await releaseWorkerIfIdle(booking.worker);
     return res.status(200).json({ message: 'Booking cancelled successfully', booking });
   } catch (error) { console.error('Cancel booking error:', error); return res.status(500).json({ message: 'Server error' }); }
 };

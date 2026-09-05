@@ -6,11 +6,13 @@ const {
   getProjectById,
   findWorkers,
   assignWorker,
+  assignWorkers,
   updateWorkerAssignment,
   updateProjectStatus
 } = require('../controllers/projectController');
 
 const { protect, authorize } = require('../middleware/authMiddleware');
+const validateObjectId = require('../middleware/validateObjectId');
 
 const router = express.Router();
 
@@ -42,6 +44,7 @@ router.get(
 router.get(
   '/:projectId',
   protect,
+  validateObjectId('projectId'),
   authorize('contractor'),
   getProjectById
 );
@@ -50,14 +53,25 @@ router.get(
 router.post(
   '/:projectId/workers',
   protect,
+  validateObjectId('projectId'),
   authorize('contractor'),
   assignWorker
+);
+
+router.post(
+  '/:projectId/workers/bulk',
+  protect,
+  validateObjectId('projectId'),
+  authorize('contractor'),
+  assignWorkers
 );
 
 // Update worker assignment status
 router.patch(
   '/:projectId/workers/:workerId',
   protect,
+  validateObjectId('projectId'),
+  validateObjectId('workerId'),
   authorize('contractor'),
   updateWorkerAssignment
 );
@@ -66,6 +80,7 @@ router.patch(
 router.patch(
   '/:projectId/status',
   protect,
+  validateObjectId('projectId'),
   authorize('contractor'),
   updateProjectStatus
 );
